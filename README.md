@@ -101,7 +101,55 @@ module my.module.name {
   ...
   jdeps -s -p modulesAreExportedHere modulesAreExportedHere/com.example.MyClass.jar
 ```
-
+  **Notice dashes in following possible commands. Some of them have up to 3 forms for same command**
+```
+      javac -cp <classpath>           |
+            -classpath <classpath>    | + Location of the JAR in a nonmodular program
+            --class-path <classpath>  | 
+  -------------------------------------------------------------------------------------
+            -d <dir>                  | + Directory to place generated .class files
+  -------------------------------------------------------------------------------------
+            -p <path>                 | + Location of JARs in a modular program
+            --module-path<path>       | 
+```
+  ---
+```
+      java  -p <path>                 | + Location of JARs in a modular program
+            --module-path<path>       | 
+  -------------------------------------------------------------------------------------
+            -m <name>                 | + Module name to run
+            --module-path <path>      | 
+  -------------------------------------------------------------------------------------
+            -d                        | Describes the details of a module
+            --describe-module         |
+  -------------------------------------------------------------------------------------
+            --list-modules            | List observable modules without running a program
+  -------------------------------------------------------------------------------------
+            --show-module-resolution  | Shows modules when running program
+```
+  ---
+```
+       jar  -c                  | Create a new .jar file
+            --create            |
+  -------------------------------------------------------------------------------------
+            -v                  | Prints details when working with JAR files (log)
+            --verbose           |
+  -------------------------------------------------------------------------------------
+            -f                  | Name of JAR file
+            --file              |
+  -------------------------------------------------------------------------------------
+            -C                  | Directory containing files to be used to create the JAR
+  -------------------------------------------------------------------------------------
+            -d                  | Describes the details of a module
+            --describe-module   |
+```
+  ---
+```
+          jdeps --module-path          | Location of JARs in a modular program
+  -------------------------------------------------------------------------------------
+                -s                     | Shows modules dependencies 
+                -summary               |
+```
 ## Part II - Exam 1Z0-816, OCP Java SE 11 Programmer II
 
 ### Chapter 17 - Modules
