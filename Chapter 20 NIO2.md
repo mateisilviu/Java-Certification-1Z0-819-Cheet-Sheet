@@ -196,6 +196,7 @@ var directory = Paths.get("/enclosure").resolve(file.getFileName()); // a way to
 ##### public static <A extends BasicFileAttributes> A readAttributes(Path path,Class<A> type, LinkOption… options) throws IOException
   - a single method to retrive all attributes of a file as oppsite of calling each one of the methods above (isHidden, isDirectory, size, etc) 
   - there are specific view interfaces based on the operating system and a common interface _BasicFileAttributes_
+  
   | Attributes interface | View interface | Description  |
   | ---------------------| ---------------| -------------| 
   |BasicFileAttributes   |BasicFileAttributeView | Basic set of attributes supported by all file systems | 
