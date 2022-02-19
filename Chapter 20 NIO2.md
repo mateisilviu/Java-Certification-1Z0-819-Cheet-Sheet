@@ -91,7 +91,7 @@ System.out.println(p3.normalize()); // ../../fish.txt
   System.out.println(Paths.get("/zebra/food.txt").toRealPath()); // will print /horse/food.txt
   System.out.println(Paths.get(".././food.txt").toRealPath());   // will print /horse/food.txt
 ```
-#### NIO 2 Files class
+#### NIO 2 Files.java class methods
   - it's a helper class used to interact with real files / directories
   - will throw an _IOException_ if path dosen't exists on most of the methods
   - replicate numerous methods functionalities found in _java.io.File_ that are with different name or list of parameter 
@@ -132,6 +132,7 @@ var directory = Paths.get("/enclosure").resolve(file.getFileName()); // a way to
   - _delete()_ method throws an exception if the path dosn't exists (_NoSuchFileException_)
   - _deleteIfExists()_ will not throw an exception if path dosn't exists, it will return _true_/_false_ if succesfull.
 ##### public static BufferedReader newBufferedReader (Path path) throws IOException 
+  - reads a file specified at _Path_ unsing a _BufferedReader_ object
   ```
   var path = Path.of("/animals/gopher.txt");
   try (var reader = Files.newBufferedReader(path)) {
@@ -141,6 +142,7 @@ var directory = Paths.get("/enclosure").resolve(file.getFileName()); // a way to
   }
   ```
 ##### public static BufferedWriter newBufferedWriter (Path path, OpenOption… options) throws IOException
+    - writes a file specified at _Path_ unsing a _BufferedWriter_ object
   ```
   var list = new ArrayList<String>();
   list.add("Smokey");
@@ -154,3 +156,141 @@ var directory = Paths.get("/enclosure").resolve(file.getFileName()); // a way to
      }
   }
   ````
+##### public static List<String> readAllLines (Path path) throws IOException
+  - will read and store all content of specified file into a list
+  - if file is large, coult trigger _OutOfMemoryError_
+##### public static boolean isDirectory (Path path, LinkOption… options)
+  - checks if the file from parameter is a directory
+  - it doesn't throw _IOException_
+  - return _false_ if file dosen't exists
+##### public static boolean isSymbolicLink (Path path)
+  - checks if the file from parameter is a symbolic link 
+  - it doesn't throw _IOException_
+  - return _false_ if file dosen't exists
+##### public static boolean isRegularFile (Path path, LinkOption… options)
+  - checks if the file from parameter can contain content
+  - if the _Path_ is a symbolic link and it resolves to a 'regular file' then this method will return _true_
+  - it doesn't throw _IOException_
+  - return _false_ if file dosen't exists
+##### public static boolean isHidden (Path path) throws IOException
+  - checks if file is declared hidden in the operating system
+  - it throw _IOException_ if file dosesn't exists
+##### public static boolean isReadable (Path path)
+  - checks if file is declared readable in the operating system
+  - it doesn't throw _IOException_
+  - return _false_ if file dosen't exists
+##### public static boolean isWritable (Path path)
+  - checks if file is declared writable in the operating system
+  - it doesn't throw _IOException_
+  - return _false_ if file dosen't exists
+##### public static boolean isExecutable (Path path)
+  - checks if file is declared executable and can be executed in the operating system
+  - it doesn't throw _IOException_
+  - return _false_ if file dosen't exists
+##### public static long size (Path path) throws IOException
+  - returns the size of the file in bytes
+  - size on disk may differ 
+  - calling this method on directories is undefined and result depends on the operating system 
+##### public static FileTime getLastModifiedTime (Path path,LinkOption… options) throws IOException
+  - get last time a file was modified represented as _FileTime_ timestamp
+##### public static <A extends BasicFileAttributes> A readAttributes(Path path,Class<A> type, LinkOption… options) throws IOException
+  - a single method to retrive all attributes of a file as oppsite of calling each one of the methods above (isHidden, isDirectory, size, etc) 
+  - there are specific view interfaces based on the operating system and a common interface _BasicFileAttributes_
+  | Attributes interface | View interface | Description  |
+  | ---------------------| ---------------| -------------| 
+  |BasicFileAttributes   |BasicFileAttributeView | Basic set of attributes supported by all file systems | 
+  |DosFileAttributes |DosFileAttributeView |Basic set of attributes along with those supported by DOS/Windows‐based systems |
+  |PosixFileAttributes | PosixFileAttributeView | Basic set of attributes along with those supported by POSIX systems, such as UNIX, Linux, Mac, etc.|
+  
+  ```
+  var path = Paths.get("/folder/file.txt");
+  BasicFileAttributes data = Files.readAttributes(path,BasicFileAttributes.class);
+
+  System.out.println("Is a directory? " + data.isDirectory());
+  System.out.println("Is a regular file? " + data.isRegularFile());
+  System.out.println("Is a symbolic link? " + data.isSymbolicLink());
+  System.out.println("Size (in bytes): " + data.size());
+  System.out.println("Last modified: " + data.lastModifiedTime());
+  ```
+##### public static <V extends FileAttributeView> V getFileAttributeView (Path path,Class<V> type,LinkOption… options) 
+  - using this method to update (some) file attribute 
+  - you can't change a file into a directory or the other way arround using this method
+  - you can't change a file size via attribute wihtout modifing the content of it
+  ```
+  // Read file attributes
+  var path = Paths.get("/folder/file.txt");
+  BasicFileAttributeView view = Files.getFileAttributeView(path,BasicFileAttributeView.class);
+  BasicFileAttributes attributes = view.readAttributes();
+  // Modify file last modified time
+  FileTime lastModifiedTime = FileTime.fromMillis(attributes.lastModifiedTime().toMillis() + 1000);
+  view.setTimes(lastModifiedTime, null, null);
+  ```
+  - **public void setTimes(FileTime lastModifiedTime,FileTime lastAccessTime, FileTime createTime)** accepts _null_ values for any date/time value that we don't want to modify
+##### public static Stream<Path> list (Path dir) throws IOException
+  - method is similar to _java.io.File_ _listFiles()_ difference is that this returns a stream of _Path_ and not an array _File[]_
+  ``` // deep copy example
+  public void copyPath(Path source, Path target) {
+   try {
+      Files.copy(source, target);
+      if(Files.isDirectory(source))
+         try (Stream<Path> s = Files.list(source)) {
+            s.forEach(p -> copyPath(p, 
+               target.resolve(p.getFileName())));
+         }
+   } catch(IOException e) {
+      // Handle exception
+   }
+  }
+  ```
+  - method will not follow symbolic links 
+  - stream must be closed as per above example with _try-with-resources_ method or otherways is a resource leak
+  - **a terminal operation on stream will not close the underlying file resource**
+##### public static Stream<Path> walk (Path start, FileVisitOption… options) throws IOException ; public static Stream<Path> walk (Path start, int maxDepth, FileVisitOption…options) throws IOException
+  - it's used to visit all paths of a directory tree (_traversing a directory_ ) starting from the parent  and iterate over all descendants until a perticular condition is met (a file is seached, or multiple files with specific extension)
+  - it uses _depth‐first search_ algorithm meainng that the traverse will go from root to an arbritary leaf (of the tree directory) then navigates back to the root. Any path is skipped along the way.
+  - _maxDepth_ parameter is used in _depth‐first search_ as per the distance from the root to maximum leaf length 
+  - when _maxDepth_ parameter is missing, default depth is _Integer.MAX_VALUE_
+  - **FileVisitOption.FOLLOW_LINKS** option is required in order to follow symbolic links ; this could lead to a cycle if a path is visited twice and throws _FileSystemLoopException _
+##### public static Stream<Path> find (Path start,int maxDepth,BiPredicate<Path, BasicFileAttributes> matcher,FileVisitOption… options) throws IOException
+  - similar with method _walk()_ and it takes a _BiPredicated_ filter and _maxDepth_ is mandatory
+  - it automatically retrives the basic file information and filter them based on predicate
+  ```
+  Path path = Paths.get("/bigcats"); // searches all .java files of minimum size 1000 bytes
+  long minSize = 1_000;
+  try (var s = Files.find(path, 10, 
+        (p, a) -> a.isRegularFile()
+           && p.toString().endsWith(".java")
+           && a.size() > minSize)) {
+     s.forEach(System.out::println);
+  }
+  ```
+ ##### public static Stream<String> lines (Path path) throws IOException 
+  - a better method compared to _Files.readAllLines()_ because the content of the file are read and processed lazily and only a small portion of the file is stored in memory
+  
+  #### Legacy vs NIO.2 methods
+ |Legacy I/O File method|NIO.2 method| 
+  | ---------------| ---------------|
+|file.delete() |Files.delete(path) | 
+|file.exists() |Files.exists(path) | 
+|file.getAbsolutePath() |path.toAbsolutePath() | 
+|file.getName() |path.getFileName() | 
+|file.getParent() |path.getParent() | 
+|file.isDirectory() |Files.isDirectory(path) | 
+|file.isFile() |Files.isRegularFile(path) | 
+|file.lastModified() |Files.getLastModifiedTime(path) | 
+|file.length() |Files.size(path) | 
+|file.listFiles() |Files.list(path) | 
+|file.mkdir() |Files.createDirectory(path) | 
+|file.mkdirs() |Files.createDirectories(path) | 
+|file.renameTo(otherFile) |Files.move(path,otherPath) | 
+
+  
+  ### Common exam tricks
+  
+  #### Mix _Files.readAllLines()_ with _Files.lines()_
+  ``` 
+  Files.readAllLines(Paths.get("birds.txt"))
+      .filter(s -> s.length()> 2)
+      .forEach(System.out::println);
+  ```
+ - this will not compile as _readAllLines()_ returns a _List_ not a _Stream_ ; _filter_ method is not available for _List_ 
