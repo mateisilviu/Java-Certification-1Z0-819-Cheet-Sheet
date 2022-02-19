@@ -119,3 +119,38 @@ Files.copy(file, directory); // will throw an expection because /enclosure alrea
 ---
 var directory = Paths.get("/enclosure").resolve(file.getFileName()); // a way to corect copy file above
 ```
+##### public static Path move (Path source, Path target,CopyOption… options) throws IOException
+  - will move files/directories from on place to another
+  - could mean rename if the directory of the source and destination don't change or move and rename
+  - if the target exists it will throw an exception unless _REPLACE_EXISTING_ option is set
+  - will not put a file into a directory if the source is the directory , but will create a new file with the name of the directory _Files.move(Path.of("c:\\user\\addresses.txt"), Path.of("c:\\user-new)); // will move <<address.txt>> into a file without extension named <<user-new>>_
+  - above statment rephrased : if the source path is a file (with an extension) , destination path should be also a file with (same) extension not a directory 
+  - **StandardCopyOption.ATOMIC_MOVE** option will do the move within the file system as a single indivisible operation (Concurrency) ; if the system dosn't accept this feature will throw an _AtomicMoveNotSupportedException_ 
+##### public static void delete (Path path) throws IOException ; public static boolean deleteIfExists (Path path) throws IOException
+  - a directory must be empty in order to be deleted, both members throw exception if the directory is not empty 
+  - if the path is a symbolic link, then this will be deleted not the file representing the link to
+  - _delete()_ method throws an exception if the path dosn't exists (_NoSuchFileException_)
+  - _deleteIfExists()_ will not throw an exception if path dosn't exists, it will return _true_/_false_ if succesfull.
+##### public static BufferedReader newBufferedReader (Path path) throws IOException 
+  ```
+  var path = Path.of("/animals/gopher.txt");
+  try (var reader = Files.newBufferedReader(path)) {
+   String currentLine = null;
+   while((currentLine = reader.readLine()) != null)
+      System.out.println(currentLine);
+  }
+  ```
+##### public static BufferedWriter newBufferedWriter (Path path, OpenOption… options) throws IOException
+  ```
+  var list = new ArrayList<String>();
+  list.add("Smokey");
+  list.add("Yogi");
+
+  var path = Path.of("/animals/bear.txt");
+  try (var writer = Files.newBufferedWriter(path)) {
+     for(var line : list) {
+        writer.write(line);
+        writer.newLine();
+     }
+  }
+  ````
