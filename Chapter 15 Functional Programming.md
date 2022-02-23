@@ -226,6 +226,7 @@ public interface BinaryOperator<T> extends BiFunction<T, T, T> {
   - **Intermediate operations** are optional and could be missing from a stream, other parts are mandatory
   - a _stream_ could have many _intermeditate operations_ and only one **terminal operation**
   - _Stream<T>_ interface is located in _java.util.stream_ package
+  - printing a stream will result into something like _java.util.stream.ReferencePipeline$3@4517d9a3_
   
   |Scenario| Intermediate operation|Terminal operation  |
   |----|----|----|
@@ -235,7 +236,129 @@ public interface BinaryOperator<T> extends BiFunction<T, T, T> {
   |Executed upon method call?|No|Yes |
   |Stream valid after call?|Yes|No|
   
+  |Method|Finite or infinite?|Notes  |
+  |----|-----|-----|
+  |Stream.empty() |Finite|Creates Stream with zero elements |
+  |Stream.of(varargs) |Finite|Creates Stream with elements listed |
+  |coll.stream() |Finite|Creates Stream from a Collection |
+  |coll.parallelStream() |Finite|Creates Stream from a Collection where the stream can run in parallel |
+  |Stream.generate(supplier) |Infinite|Creates Stream by calling the Supplier for each element upon request |
+  |Stream.iterate(seed, unaryOperator)|Infinite|Creates Stream by using the seed for the first element and then calling the UnaryOperator for each subsequent element upon request |
+  |Stream.iterate(seed,  predicate, unaryOperator) |Finite or infinite|Creates Stream by using the seed |
   
+  ### Common terminal operations
+  - _reductions_ are a special type of terminal operation because they combine all content of a stream into a single primitive or _Object_
+  
+  | Method | What happens for infinite streams | Return value |Reduction  |
+  |----|---|---|---|
+  |count() |Does not terminate|long Yes |
+  |min() | Does not terminate|Optional<T> |Yes |
+  |max() | | | |
+  |findAny() | Terminates | Optional<T> | No |
+  |findFirst() | | | |
+  |allMatch() |Sometimes terminates | boolean | No |
+  |anyMatch() | | | |
+  |noneMatch()  | | | |
+  |forEach() | Does not terminate |void | No |
+  |reduce() | Does not terminate | Varies | Yes  |
+  |collect() | Does not terminate |Varies |Yes |
+  
+  #### count()
+    - returns a _long_ value representing the number of elements in a finite stream
+    - hangs in case of infinite stream
+  #### min() and max()
+    - allows to pass a custom _Comparator_ as parameter that will sort the stream using it and find the smalles or largest value in a finite stream
+    - hangs in case of infinite stream 
+  
+  ```
+  Optional<T> min(Comparator<? super T> comparator)
+  Optional<T> max(Comparator<? super T> comparator)
+  ```
+  
+```
+Stream<String> s = Stream.of("monkey", "ape", "bonobo");
+Optional<String> min = s.min((s1, s2) -> s1.length()-s2.length());
+min.ifPresent(System.out::println); // ape
+
+Optional<?> maxEmpty = Stream.empty().max((s1, s2) -> 0);
+System.out.println(maxEmpty.isPresent()); // false
+```
+  
+  ### findAny() and findFirst()
+    - if stream is empty they will return an empty _Optional_
+    - it can terminate an infinite stream 
+    - _findAny_ should return first element in stream but is not guaranteed especially when used in _parallel_ streams
+   
+  ```
+  Optional<T> findAny()
+  Optional<T> findFirst()
+  ```
+  
+  ```
+  Stream<String> s = Stream.of("monkey", "gorilla", "bonobo");
+  Stream<String> infinite = Stream.generate(() -> "chimp");
+
+  s.findAny().ifPresent(System.out::println);        // monkey (usually)
+  infinite.findAny().ifPresent(System.out::println); // chimp
+  ```
+  ### allMatch(), anyMatch(), and noneMatch()
+    - all methods use the predicated in parameter to search in stream elements
+    - all return a _boolean_ value if not hanging infintly 
+    - might terminate on infinite streams in certain conditions 
+  
+  ```
+  var list = List.of("Aaa", "232", "bbB");
+  Predicate<String> pred = x -> Character.isLetter(x.charAt(0));
+
+  System.out.println(list.stream().anyMatch(pred));  // true
+  System.out.println(list.stream().allMatch(pred));  // false
+  System.out.println(list.stream().noneMatch(pred)); // false
+  ```
+
+  |code example | method  | terminates infinite |
+  |----| ---- | ---- | 
+  | Stream<String> infinite = Stream.generate(() -> "Aaa");       | | yes |
+  | Predicate<String> pred = x -> Character.isLetter(x.charAt(0));| | |
+  | System.out.println(infinite.anyMatch(pred));       // true    | | |
+  | Stream<String> infinite = Stream.generate(() -> "123Aaa");       | anyMatch| no |
+  | Predicate<String> pred = x -> Character.isLetter(x.charAt(0));| | |
+  | System.out.println(infinite.anyMatch(pred));       // hangs   | | |
+  
+  <table>
+    <thead>
+        <tr>
+            <th>Code example</th>
+            <th>Method</th>
+            <th>Terminates infinite</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td rowspan=3>
+              Stream<String> infinite = Stream.generate(() -> "Aaa");  
+              Predicate<String> pred = x -> Character.isLetter(x.charAt(0));
+              System.out.println(infinite.anyMatch(pred));       // true 
+            </td>
+            <td>anyMatch</td>
+            <td>yes</td>
+        </tr>
+              <tr>
+                 <td></td>
+              <td></td>
+              <td></td>
+              </tr>
+                            <tr>
+                 <td></td>
+              <td></td>
+              <td></td>
+              </tr>
+                            <tr>
+                 <td></td>
+              <td></td>
+              <td></td>
+              </tr>
+    </tbody>
+</table>
   
   ## Exam tricks questions
   ### Incomplete functions or missing parameters
@@ -244,4 +367,13 @@ public interface BinaryOperator<T> extends BiFunction<T, T, T> {
   Function<List<String>> ex1 = x -> x.get(0); // DOES NOT COMPILE - missing return type as function needs 2 parameters declared in left between <>
   UnaryOperator<Long> ex2 = (Long l) -> 3.14; // DOES NOT COMIPLE - wrong return type, expected Long but returned 3.14 - double 
   Predicate ex4 = String::isEmpty;            // DOES NOT COMPILE - missing parameter type from Predicated, expected Predicate<String>
+  ```
+  
+  ### Wrong syntax used
+  ```
+  Stream<Integer> oddNumberUnder100 = Stream.iterate(1;n -> n<100; n-> n + 2); // use of semicolons like in 'for' insteed of commas
+  ```
+ 
+  ### Use a stream that is already terminated
+  ```
   ```
