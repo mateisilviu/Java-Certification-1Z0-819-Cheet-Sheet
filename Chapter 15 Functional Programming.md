@@ -596,6 +596,75 @@ private static Stream<Integer> boxing(IntStream stream) {
 
 ### Advanced Stream Pipeline Concepts
 
+#### Checked exception
+  - if a method declares a checked exception it cann't be used as method reference in _Supplier_ for example
+  - 
+
+#### Examples of grouping/partitioning collectors
+
+|Collector|Description|Return value when passed to collect  |
+|----|----|----|
+|averagingDouble(ToDoubleFunction f) |Calculates the average for our three core primitive types | Double
+|averagingInt(ToIntFunction f) | ||
+|averagingLong(ToLongFunction f) |||
+|counting() |Counts the number of elements|Long  |
+|groupingBy(Function f) |Creates a map grouping by the specified function with the optional map type supplier and optional downstream collector|Map<K, List<T>>  |
+|groupingBy(Function f, Collector dc) |||
+|groupingBy(Function f, Supplier s, Collector dc) |||
+|joining(CharSequence cs) |Creates a single String using cs as a delimiter between elements if one is specified|String  |
+|maxBy(Comparator c) |Finds the largest/smallest elements|Optional<T> |
+|minBy(Comparator c) |||
+|mapping(Function f, Collector dc) |Adds another level of collectors|Collector  |
+|partitioningBy(Predicate p) |Creates a map grouping by the specified predicate with the optional further downstream collector|Map<Boolean, List<T>>  |
+|partitioningBy(Predicate p, Collector dc) |||
+|summarizingDouble(ToDoubleFunction f) |Calculates average, min, max, and so on|DoubleSummaryStatistics
+|summarizingInt(ToIntFunction f) ||IntSummaryStatistics|
+|summarizingLong(ToLongFunction f)| |LongSummaryStatistics|
+|summingDouble(ToDoubleFunction f) | Calculates the sum for our three core primitive types|Double|
+|summingInt(ToIntFunction f) | |Integer|
+|summingLong(ToLongFunction f) || Long  |
+|toList() |Creates an arbitrary type of list or set|List|
+|toSet() || Set|
+|toCollection(Supplier s) |Creates a Collection of the specified type|Collection  |
+|toMap(Function k, Function v) |Creates a map using functions to map the keys, values, an optional merge function, and an optional map type supplier|Map|
+|toMap(Function k, Function v, BinaryOperator m) |||
+|toMap(Function k, Function v, BinaryOperator m, Supplier s) |||
+
+  #### Collecting Using Grouping, Partitioning, and Mapping
+  - the type used in the method **groupingBy** will give the key part of the resulting _Map_
+  - values of the resulting map will remain of same type as per initial collection
+  - _groupingby_ cannot return _null_ because you can't have _null_ keys in _Map_
+```
+var ohMy = Stream.of("lions", "tigers", "bears");
+Map<Integer, List<String>> map = ohMy.collect(
+   Collectors.groupingBy(String::length)); // because length is an int / Integer is the key in the Map above 
+System.out.println(map);    // {5=[lions, bears], 6=[tigers]}
+```
+
+```
+var ohMy = Stream.of("lions", "tigers", "bears");
+TreeMap<Integer, Set<String>> map = ohMy.collect(
+   Collectors.groupingBy(
+      String::length,  // this determins the key as Integer
+      TreeMap::new,    // this creates the TreeMap
+      Collectors.toSet())); // this will convert values to a Set (HashSet)
+//  Collectors.toList())); line above could be replaced with this one but also 2nd line with List<String> insteed of Set<String>
+System.out.println(map); // {5=[lions, bears], 6=[tigers]}
+```
+  - partitioning meaning separate values in 2 possible groupes _true_ / _false_
+  - resulting _Map_ has always the key as _Boolean_
+```
+var ohMy = Stream.of("lions", "tigers", "bears");
+Map<Boolean, List<String>> map = ohMy.collect(
+   Collectors.partitioningBy(s -> s.length() <= 5));
+System.out.println(map);    // {false=[tigers], true=[lions, bears]}
+///////
+var ohMy = Stream.of("lions", "tigers", "bears");
+Map<Boolean, List<String>> map = ohMy.collect(
+   Collectors.partitioningBy(s -> s.length() <= 7));
+System.out.println(map);    // {false=[], true=[lions, tigers, bears
+```
+
   ## Exam tricks questions
   ### Incomplete functions or missing parameters
   
@@ -625,5 +694,24 @@ private static Stream<Integer> boxing(IntStream stream) {
   Stream<String> s = Stream.of("brown bear-", "grizzly-");
   s.sorted(Comparator::reverseOrder); // DOES NOT COMPILE
   // because referseOrder it's a function with 0 parameters that retuns a Comparator
+
+```
+  ### Using wrong collect toMap method
+  - it throws following exception: _Exception in thread "main" java.lang.IllegalStateException: Duplicate key 5_ 
+  - the problem is that they key for the map is the length of each string and is not unique 
+
+```
+var ohMy = Stream.of("lions", "tigers", "bears");
+Map<Integer, String> map = ohMy.collect(Collectors.toMap(
+   String::length, 
+   k -> k)); // compiles but throws exception
+// solution :
+var ohMy = Stream.of("lions", "tigers", "bears");
+Map<Integer, String> map = ohMy.collect(Collectors.toMap(
+   String::length,
+   k -> k, 
+  (s1, s2) -> s1 + "," + s2)); // will concatenate in case of same key
+System.out.println(map);            // {5=lions,bears, 6=tigers}
+System.out.println(map.getClass()); // class java.util.HashMap
 
 ```
