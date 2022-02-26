@@ -486,6 +486,116 @@ s.skip(5)     // still an infinite stream returned here
   System.out.println(count);                          // 1
 ```
 
+  ### Primitive Streams
+  - **IntStream** for primitives type _int,short,byte_ and _char_
+  - **LongStream** for _long_
+  - **DoubleStream** for _double_ and _float_
+  - all have methdos like **.emtpy(), of(...)**
+  - _flatMap()_ exists for primitives also as _flatMapToInt(...),flatMapToDouble(...),flatMapToLong(...)_
+  - _boxed()_ method will return the Stream<Type> of the primitive stream applied to 
+  - _mapToObj_ will return same as boxed()
+  - summary statistics are used to get multiple data from a stream regarding _min(),max(),average()_ and there are statistics of specific primitive as per table below
+
+```
+private static Stream<Integer> mapping(IntStream stream) {
+   return stream.mapToObj(x -> x);
+}
+ 
+private static Stream<Integer> boxing(IntStream stream) {
+  return stream.boxed();
+}
+```
+
+  #### Common primitive stream methods
+
+|Method|Primitive stream|Description  |
+|---|----|---|
+|OptionalDouble average() |IntStream |The arithmetic mean of the elements |
+| | LongStream |
+| | DoubleStream |
+|Stream<T> boxed() | IntStream  | A Stream<T> where T is the wrapper class associated with the primitive value |
+| | LongStream |
+| | DoubleStream |
+| OptionalInt max() | IntStream | The maximum element of the stream |
+| OptionalLong max() | LongStream  |  | 
+| OptionalDouble max() |DoubleStream |  |
+| OptionalInt min() | IntStream | The minimum element of the stream  |
+| OptionalLong min() | LongStream  | |
+| OptionalDouble min() | DoubleStream  | |
+| IntStream range(int a, int b) | IntStream | Returns a primitive stream from a (inclusive) to b (exclusive)  |
+| LongStream range(long a, long b) | LongStream  | | 
+| IntStream rangeClosed(int a, int b) | IntStream | Returns a primitive stream from a (inclusive) to b (inclusive)  |
+| LongStream rangeClosed(long a, long b) | LongStream  | | 
+| int sum() | IntStream | Returns the sum of the elements in the stream  | 
+| long sum() | LongStream  | |
+| double sum() | DoubleStream  | |
+|IntSummaryStatistics summaryStatistics() | IntStream | Returns an object containing numerous stream statistics such as the average, min, max, etc.  |
+|LongSummaryStatistics summaryStatistics() | LongStream  | |
+|DoubleSummaryStatistics summaryStatistics() | DoubleStream | |
+
+  #### Mapping methods between types of streams
+  
+|Source stream class|To create Stream|To create DoubleStream|To create IntStream|To create LongStream  |
+|----|---|---|---|---|
+|Stream<T> |map() |mapToDouble() |mapToInt() |mapToLong()  |
+|DoubleStream |mapToObj() |map() |mapToInt() |mapToLong()  |
+|IntStream |mapToObj() |mapToDouble() |map() |mapToLong()  |
+|LongStream |mapToObj() |mapToDouble() |mapToInt() |map() |
+
+#### Function parameters when mapping between types of streams
+   
+|Source stream class|To create Stream|To create DoubleStream|To create IntStream|To create LongStream  |
+|----|---|---|---|---|
+|Stream<T> |Function<T,R> |ToDoubleFunction<T> |ToIntFunction<T> |ToLongFunction<T>  |
+|DoubleStream |Double Function<R> |DoubleUnary Operator |DoubleToInt Function |DoubleToLong Function  |
+|IntStream |IntFunction<R> |IntToDouble Function |IntUnary Operator |IntToLong Function  |
+|LongStream |Long Function<R> |LongToDouble Function |LongToInt Function |LongUnary Operator |
+
+#### Common functional interfaces for primitives
+
+|Functional interfaces|# parameters|Return type|Single abstract method  |
+|---|---|---|---|
+|DoubleSupplier |0|double|getAsDouble|
+|IntSupplier ||int|getAsInt| | 
+|LongSupplier ||long|getAsLong| | 
+|DoubleConsumer |1 (double) |void | accept| 
+| IntConsumer | 1 (int) | | | 
+| LongConsumer |  1 (long) | | |
+|DoublePredicate | 1 (double) | boolean | test|
+|IntPredicate |  1 (int) | | |
+|LongPredicate | 1 (long) | | |
+|DoubleFunction<R> |1 (double) | R | apply|
+| IntFunction<R> |  1 (int) | | |
+|LongFunction<R> |  1 (long) | | |
+|DoubleUnaryOperator | 1 (double)| double|applyAsDouble|
+|IntUnaryOperator | 1 (int)|int|applyAsInt |
+|LongUnaryOperator | 1 (long)|long|  applyAsLong|
+|DoubleBinaryOperator |2 (double, double)|double|applyAsDouble|
+|IntBinaryOperator | 2 (int, int)|int|applyAsInt|
+|LongBinaryOperator | 2 (long, long)|long|applyAsLong|
+
+#### Primitive‐specific functional interfaces
+
+|Functional interfaces|# parameters|Return type|Single abstract method  |
+|---|----|---|---|
+|ToDoubleFunction<T> |1 (T)|double|applyAsDouble|
+|ToIntFunction<T> ||int|applyAsInt|
+|ToLongFunction<T> ||long|applyAsLong|
+|ToDoubleBiFunction<T, U> |2 (T, U)|double|applyAsDouble|
+|ToIntBiFunction<T, U> ||int|applyAsInt|
+|ToLongBiFunction<T, U> ||long|applyAsLong|
+|DoubleToIntFunction |1 (double)|int|applyAsInt|
+|DoubleToLongFunction |1 (double)|long|applyAsLong|
+|IntToDoubleFunction |1 (int)|double|applyAsDouble|
+|IntToLongFunction |1 (int)|long|applyAsLong|
+|LongToDoubleFunction| 1 (long)|double|applyAsDouble|
+|LongToIntFunction |1 (long) |int|applyAsInt|
+|ObjDoubleConsumer<T> |2 (T, double)|void |accept|
+|ObjIntConsumer<T> | 2 (T, int)|||
+|ObjLongConsumer<T> |2 (T, long)|| |
+
+### Advanced Stream Pipeline Concepts
+
   ## Exam tricks questions
   ### Incomplete functions or missing parameters
   
