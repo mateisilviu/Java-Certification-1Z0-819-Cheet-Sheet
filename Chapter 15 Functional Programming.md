@@ -284,7 +284,7 @@ Optional<?> maxEmpty = Stream.empty().max((s1, s2) -> 0);
 System.out.println(maxEmpty.isPresent()); // false
 ```
   
-  ### findAny() and findFirst()
+  #### findAny() and findFirst()
     - if stream is empty they will return an empty _Optional_
     - it can terminate an infinite stream 
     - _findAny_ should return first element in stream but is not guaranteed especially when used in _parallel_ streams
@@ -301,7 +301,7 @@ System.out.println(maxEmpty.isPresent()); // false
   s.findAny().ifPresent(System.out::println);        // monkey (usually)
   infinite.findAny().ifPresent(System.out::println); // chimp
   ```
-  ### allMatch(), anyMatch(), and noneMatch()
+  #### allMatch(), anyMatch(), and noneMatch()
     - all methods use the predicated in parameter to search in stream elements
     - all return a _boolean_ value if not hanging infintly 
     - might terminate on infinite streams in certain conditions 
@@ -317,49 +317,175 @@ System.out.println(maxEmpty.isPresent()); // false
 
   |code example | method  | terminates infinite |
   |----| ---- | ---- | 
-  | Stream<String> infinite = Stream.generate(() -> "Aaa");       | | yes |
+  | Stream<String> infinite = Stream.generate(() -> "Aaa");       | anyMatch | yes |
   | Predicate<String> pred = x -> Character.isLetter(x.charAt(0));| | |
   | System.out.println(infinite.anyMatch(pred));       // true    | | |
   | Stream<String> infinite = Stream.generate(() -> "123Aaa");       | anyMatch| no |
   | Predicate<String> pred = x -> Character.isLetter(x.charAt(0));| | |
   | System.out.println(infinite.anyMatch(pred));       // hangs   | | |
   
-  <table>
-    <thead>
-        <tr>
-            <th>Code example</th>
-            <th>Method</th>
-            <th>Terminates infinite</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td rowspan=3>
-              Stream<String> infinite = Stream.generate(() -> "Aaa");  
-              Predicate<String> pred = x -> Character.isLetter(x.charAt(0));
-              System.out.println(infinite.anyMatch(pred));       // true 
-            </td>
-            <td>anyMatch</td>
-            <td>yes</td>
-        </tr>
-              <tr>
-                 <td></td>
-              <td></td>
-              <td></td>
-              </tr>
-                            <tr>
-                 <td></td>
-              <td></td>
-              <td></td>
-              </tr>
-                            <tr>
-                 <td></td>
-              <td></td>
-              <td></td>
-              </tr>
-    </tbody>
-</table>
+  #### forEach()
+    - iterate over elements of a stream
+    - will not terminate in case of infinite stream
+    - is the only terminal operation with void
   
+  ```
+  void forEach(Consumer<? super T> action)
+---
+  Stream<String> s = Stream.of("Monkey", "Gorilla", "Bonobo");
+  s.forEach(System.out::print); // MonkeyGorillaBonobo
+  ```
+  
+  #### reduce()
+  - combines a stream into a single object
+  - it processes all elements and it's a reduction
+  - if the stream is empty an empty _Optional_ is returned
+  - if the stream has 1 element , that is returned
+  - _combiner_ is it used to mix different java types
+```
+  T reduce(T identity, BinaryOperator<T> accumulator)
+
+  Optional<T> reduce(BinaryOperator<T> accumulator)
+
+  <U> U reduce(U identity, 
+     BiFunction<U,? super T,U> accumulator, 
+     BinaryOperator<U> combiner)
+```
+
+```
+  Stream<String> stream = Stream.of("w", "o", "l", "f");
+  String word = stream.reduce("", (s, c) -> s + c);     // using lambda expresion 
+  System.out.println(word); // wolf
+
+  Stream<String> stream = Stream.of("w", "o", "l", "f");
+  String word = stream.reduce("", String::concat);    // using method reference 
+  System.out.println(word); // wolf
+
+  Stream<String> stream = Stream.of("w", "o", "l", "f!");
+  int length = stream.reduce(0, (i, s) -> i+s.length(), (a, b) -> a+b); // i is type Integer ; s is type String ; a,b are Integer
+  System.out.println(length); // 5
+```
+
+  #### collect()
+  - is a special type of _mutable reduction_
+  - is more efficent than reduction
+  - common mutable object _StringBuilder_ and _ArrayList_
+  - _Collectors_ contains numerouse methods be used in _collect_ method as argument transforming to different collections 
+
+```
+  <R> R collect(Supplier<R> supplier, 
+     BiConsumer<R, ? super T> accumulator, 
+     BiConsumer<R, R> combiner)
+
+  <R,A> R collect(Collector<? super T, A,R> collector)
+```
+
+```
+  Stream<String> stream = Stream.of("w", "o", "l", "f");
+
+  TreeSet<String> set = stream.collect(
+     TreeSet::new, 
+     TreeSet::add,
+     TreeSet::addAll);
+
+  System.out.println(set); // [f, l, o, w]
+  // equivalent of : 
+  Stream<String> stream = Stream.of("w", "o", "l", "f");
+  TreeSet<String> set = stream.collect(Collectors.toCollection(TreeSet::new)); //Set<String> set = stream.collect(Collectors.toSet());
+  System.out.println(set); // [f, l, o, w]
+```
+  ### Common intermediate operations
+  - an intermediate operation produces a stream as it's result
+  - can deal with infinite stream and produces another infinite stream
+
+  #### filter()
+  - returns a stream with elements that match a given expresion 
+
+```
+Stream<T> filter(Predicate<? super T> predicate) // signature
+
+Stream<String> s = Stream.of("monkey", "gorilla", "bonobo");
+s.filter(x -> x.startsWith("m")).forEach(System.out::print); // monkey
+```
+  #### distinct()
+  - returns a stream with duplicate values removed
+  - java will call _equals()_ in order to check if 2 objects are the same
+
+```
+Stream<T> distinct() // signature
+
+Stream<String> s = Stream.of("duck", "duck", "duck", "goose");
+s.distinct().forEach(System.out::print); // duckgoose
+```
+  #### limit() and skip()
+  - could transform an infinite stream to a finite one
+
+```
+Stream<T> limit(long maxSize) // signature
+Stream<T> skip(long n)        // signature
+
+Stream<Integer> s = Stream.iterate(1, n -> n + 1); // infinite stream
+s.skip(5)     // still an infinite stream returned here
+   .limit(2)   // transform to finite stream
+   .forEach(System.out::print); // 67
+```
+
+  #### map()
+  - creates a one-to-one mapping for the elements in the stream
+  - it is used for transforming data
+  - is different of interface _Map_ that has keys values pairs
+
+```
+  <R> Stream<R> map(Function<? super T, ? extends R> mapper) // signature
+
+  Stream<String> s = Stream.of("monkey", "gorilla", "bonobo");
+  s.map(String::length)   // or x ‐> x.length()
+     .forEach(System.out::print); // 676
+```
+  
+  #### flatMap()
+  - returns a _Stream_ of the type of the mapper by eliminate / combine elements of same type
+  
+```
+  <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper)
+
+  List<String> zero = List.of();
+  var one = List.of("Bonobo");
+  var two = List.of("Mama Gorilla", "Baby Gorilla");
+  Stream<List<String>> animals = Stream.of(zero, one, two);
+
+  animals.flatMap(m -> m.stream()).forEach(System.out::println); //Bonobo Mama Gorilla Baby Gorilla
+```
+
+  #### sorted()
+  - returns a stream sorted using natural ordering
+  - accepts a _Comparator_ as parameter for custom sorting 
+
+```
+  Stream<T> sorted()                                  //signature
+  Stream<T> sorted(Comparator<? super T> comparator)  //signature
+
+  Stream<String> s = Stream.of("brown-", "bear-");
+  s.sorted().forEach(System.out::print); // bear-brown-
+
+  Stream<String> s = Stream.of("brown bear-", "grizzly-");
+  s.sorted(Comparator.reverseOrder())
+     .forEach(System.out::print); // grizzly-brown bear-
+```
+
+  #### peek()
+  - usefull for debugging 
+  - operates on the stream without actaully changeing the stream or developer should not change stream 
+
+```
+  Stream<T> peek(Consumer<? super T> action) // signature
+  
+  var stream = Stream.of("black bear", "brown bear", "grizzly");
+  long count = stream.filter(s -> s.startsWith("g"))
+     .peek(System.out::println).count();              // grizzly
+  System.out.println(count);                          // 1
+```
+
   ## Exam tricks questions
   ### Incomplete functions or missing parameters
   
@@ -377,3 +503,17 @@ System.out.println(maxEmpty.isPresent()); // false
   ### Use a stream that is already terminated
   ```
   ```
+
+  ### Iterate over stream with for-each 
+```
+  Stream<Integer> s = Stream.of(1);
+  for (Integer i  : s) {} // DOES NOT COMPILE because Stream dosn't implements Iterable interface
+```
+
+  ### Using wrong method reference
+```
+  Stream<String> s = Stream.of("brown bear-", "grizzly-");
+  s.sorted(Comparator::reverseOrder); // DOES NOT COMPILE
+  // because referseOrder it's a function with 0 parameters that retuns a Comparator
+
+```
