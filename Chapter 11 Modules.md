@@ -103,7 +103,7 @@ module my.module.name {
             --module-path<path>       | 
   -------------------------------------------------------------------------------------
             -m <name>                 | + Module name to run
-            --module-path <path>      | 
+            --module <name>           | 
   -------------------------------------------------------------------------------------
             -d                        | Describes the details of a module
             --describe-module         |
