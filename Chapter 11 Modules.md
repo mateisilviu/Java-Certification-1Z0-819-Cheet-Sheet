@@ -71,7 +71,7 @@ module my.module.name {
   - _requires_ keyworkd is used to specifies that a **module** is needed
   - if a package is exported then all _public_ classes, interfaces, enums and _public_ _protected_ fields are visible/exported to other classes in other modules
   - let's say _moduleA_ has _requires transitive moduleB_ ; _transitive_ keyword will make any module (let's say _moduleC_) to also requires implicit _moduleB_
-  - duplicate _requres_ and/or _requres transitive_ on same module name will result in compilation error
+  - duplicate _requires_ and/or _requires transitive_ on same module name will result in compilation error
   - _jdeps_ command gives you information about dependencies within a module
 ```
   jdeps -summery modulesAreExportedHere/com.example.MyClass.jar
