@@ -169,8 +169,7 @@ jar -cvf mods/zoo.tours.reservations.jar -C serviceLocatorModule/ .
   - it acquires a service via service locator
   - is able to invoke methods provided by the service provider interface
   - the package that implements the SPI is not exported in _module-info.java_
-  - _provides_ directive is used to indicated that a SPI is implemented by a specific class
-  - _provides <<interfaceName>> with <<className>>;_ 
+
 ```
 // Tourist.java
 package zoo.visitor;
@@ -208,6 +207,9 @@ java -p mods -m zoo.visitor/zoo.visitor.Tourist
 ### Service provider
   - is the implementation of a service provider interface
   - at runtime could exists multiple implementation for same SPI
+  - _provides_ directive is used to indicated that a SPI is implemented by a specific class
+  - _provides <<interfaceName>> with <<className>>;_ 
+  
 ```
 // TourImpl.java
 package zoo.tours.agency;
