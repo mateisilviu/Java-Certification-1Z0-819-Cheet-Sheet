@@ -274,8 +274,137 @@ public class PrintNumbers {
    |Can extend any class or implement any number of interfaces|Yes|Yes|Yes|No—must have exactly one superclass or one interface |
    |Can access instance members of enclosing class without a reference|Yes|No|Yes (if declared in an instance method)|Yes (if declared in an instance method) |
    |Can access local variables of enclosing method|N/A|N/A|Yes (if final or effectively final)|Yes (if final or effectively final)|
-  
    
    ### Understanding interface members
    
+   	- since Java 8 the _interface_ has been enriched and it's possible to have _default_ and _static_ methods
+	- since Java 9 _interface_ could have also _private_ and _private static_ methods
+	
+#### default interface method
+	- _default_ keyword is different than default (package-private) modifier that is missing for methods declaration in classes
+	- is like an abstract interface method with default implementation that could be overridden by the class that implements the interface
+	- porpuse of default interface : backward compatibility, code reusage as a default implementation could collate same implementation into single one 
+	- _default_ method can only exists in a _interface_
+	- must be marked with _default_ method and include a body
+	- is assumed to be _public_ (and _public_ can be missing) and cannot be _private,protected_
+	- cannot be marked _abstract,final,static_
+	- if a class inhearts 2 interfaces with same default method signature, it must overrides respective method or else a compilation error occurs
+	- _super_ keyword could be used to call hiddent _default_ methods in case of above situation 
+	
+```
+interface Walk {
+	   default int getSpeed() { return 5; } // public keyword could be missing
+	   private default int warpSpeed() { return Integer.MAX_VALUE; } // DOES NOT COMPILE - private cannot be used
+	   protected default long bendSpace() { return Long.MAX_VALUE; } // DOES NOT COMPILE - protected cannot be used
+	   static default void teleport() {  } // DOES NOT COMPILE - static cannot be used
+	   default void fly();  // DOES NOT COMPILE - method body needs to exists
+	   default missingReturnType() {  } // DOES NOT COMPILE - missing void or return type
+	   public int notADefaultMethod() { // DOES NOT COMPILE - abstract methods do not specify a body
+		   return 0;
+	   }
+	}
+interface Run {
+	   public default int getSpeed() { return 10; }
+	}
+public class Human implements Walk, Run {
+	   public int getSpeed() { 		// must implement common default method or else compilation error
+	      return 1;
+	   }
+	 
+	   public int getWalkSpeed() {
+	      return Walk.super.getSpeed(); 	// a way to get a default method of Walk 
+	   }
+	 
+	   public static void main(String[] args) {
+	      System.out.println(new Human().getSpeed()); // 1
+	      System.out.println(new Human().getWalkSpeed()); // 5
+	   }
+	}
+```
+	#### Static interface method
+	- they are declared with _static_ keyword
+	- is assumed to be _public_ when the keyword is missing and cannot be _protected_
+	- cannot be marked _abstract,final_
+	- is not accesible to the class that implements the interface without a reference to the interface itself
+	- they must have a body declared
+```
+interface Hop {
+	   static int getJumpHeight() { 		// assumed public 
+	      return 8;
+	   }   
+	   protected static void teleport() { }		// DOES NOT COMPILE - protected cannot be used
+	   public static final void impossible() { } 	// DOES NOT COMPILE - final cannot be used
+	   static abstract void notOk() { } 		// DOES NOT COMPILE - abstract cannot be used
+	   public static void missingBody(); 		// DOES NOT COMPILE - missing body { } implementation
+	}
+
+interface Jump {
+	 public static int getJumpHeight() { 			 
+	      return 10;
+	   }   
+}
+
+public class Bunny implements Hop, Jump { // compiles even if exists duplicate method getJumpHeight()
+	   public void printDetails() {
+	      System.out.println(getJumpHeight());  // DOES NOT COMPILE - method without interface reference cannot be used
+	      					  // Jump could be missing and still same error occurs 
+	      System.out.println(Hop.getJumpHeight());  // compiles
+	}
+}
+```
+#### Private interface method
+	- can be used to reduce code duplicate inside a interface
+	- must be marked with _private_ keyword and include a method body
+	- may be called only by _default_ and _private_ (non-_static_) methods from the interface
+	- cannot be declared _abstract_
+	- they improve encapsulation
+	- _private static_ reduce duplication in _static_ methods
+	- _private static_ can access _static_ methods within a class
+	
+#### Reviewing Interface Members
+
+| |Accessible from default and private methods within the interface definition?|Accessible from static methods within the interface definition?|Accessible from instance methods implementing or extending the interface?|Accessible outside the interface without an instance of interface?  |
+|---|----|---|---|---|
+|Constant variable|Yes|Yes|Yes|Yes |
+|abstract method|Yes|No|Yes|No |
+|default method|Yes|No|Yes|No |
+|private method|Yes|No|No|No |
+|static method|Yes|Yes|Yes|Yes |
+|private static method|Yes|Yes|No|No|
+
    ### Functional programming intorduction 
+   	- a _functional interface_ it's an interface that contains a single abastract method
+	- can have multiple _private,default,static_ methods and it's a functional interface as long as only one abstract method exists 
+```
+@FunctionalInterface 			// optional annotation
+public interface Sprint {		// it's a functional interface
+   public void sprint(int speed);
+}
+
+interface Dash extends Sprint {} 	// it's a functional interface ; inherits sprint(int) 
+
+interface Skip extends Sprint { 	// is not a functional interface
+   void skip();						// 2nd method declared
+}
+
+interface Sleep {						// is not a functional interface
+   private void snore() {}				// no public single abstract method exists
+   default int getZzz() { return 1; }
+}
+
+interface Climb {						// it's a functional interface
+	   void reach();					// single abstract method 
+	   default void fall() {}			// can have multiple static, default, private methods
+	   static int getBackUp() { return 100; }
+	   private static boolean checkHeight() { return true; }
+}
+
+@FunctionalInterface 			// optional annotation
+interface ObjectLike {					// it's a functional interface
+	void singleAbstractMethod(); 		// single abstract method
+	// following 3 can be declared in a functional interface exactly like this, like in Object class definition 
+	abstract String toString();				//abstract could be missing and will be same thing 	
+	public boolean equals(Object obj);		//public could be missing and will be same thing 
+	int hashCode();
+}
+```
