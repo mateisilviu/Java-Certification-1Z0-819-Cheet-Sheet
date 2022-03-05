@@ -401,10 +401,83 @@ interface Climb {						// it's a functional interface
 
 @FunctionalInterface 			// optional annotation
 interface ObjectLike {					// it's a functional interface
-	void singleAbstractMethod(); 		// single abstract method
+	int singleAbstractMethod(); 		// single abstract method
 	// following 3 can be declared in a functional interface exactly like this, like in Object class definition 
 	abstract String toString();				//abstract could be missing and will be same thing 	
 	public boolean equals(Object obj);		//public could be missing and will be same thing 
 	int hashCode();
 }
+```
+	#### Functional Interfaces with Lambdas
+	- any functional interface can be implemented as a lambda expression 
+	- lambda expression use _deferred execution_ as they specify how the code should behive when the method is called 
+	- the arrow key ('->') exists in a lambda expression and separates paramters from body of expression
+	- can be written as short or long version
+	- parantheses can be ommited (short version) if there is a single paramter 
+	- { } braces could be ommited (short version) if there is a single statment in body
+	- parantheses cannot be ommited when the type of parameter is specified
+
+```
+// short version
+// parameter a of type ObjectLike 
+	a -> a.singleAbstractMethod()
+	
+// long version
+  (ObjectLike a) -> { return a.singleAbstractMethod(); }
+  	// assuming we need a lambda that returns a boolean value : 
+  	a, b -> a.startsWith("test")         // DOES NOT COMPILE - missing parantheses
+	Duck d -> d.canQuack();              // DOES NOT COMPILE - missing parantheses
+	a -> { a.startsWith("test"); }       // DOES NOT COMPILE - missing return keyword 
+	a -> { return a.startsWith("test") } // DOES NOT COMPILE - missing semicolon after )
+	(Swan s, t) -> s.compareTo(t) != 0   // DOES NOT COMPILE - missing type for 't'
+```
+	##### var and lambdas 
+	- _var_ can be used inside lambda expressions
+	- if a _var_ is used in multiple parameters then must be used for all parameters
+	- _var_ cannot be mixed with other parameters types
+```
+//following 3 example are the same
+Predicate<String> p = x -> true;
+Predicate<String> p = (var x) -> true;
+Predicate<String> p = (String x) -> true;
+
+// var usage 
+(var num) -> 1				// compiles
+var w -> 99				// DOES NOT COMPILE - missing parantheses arround var w
+(var a, var b) -> "Hello"		// compiles
+(var a, Integer b) -> true		// DOES NOT COMPILE - mixt of typed and var cannot exists
+(String x, var y, Integer z) -> true	// DOES NOT COMPILE - mixt of typed and var cannot exists
+(var b, var k, var m) -> 3.14159	// compiles
+(var x, y) -> "goodbye"			// DOES NOT COMPILE - 
+
+```
+	##### local variables and lambdas
+	- local variable can exists inside lambdas body
+	- redeclare same variable name as a paramters will lead to compilation error
+	- can use _static_ variables, instance variables and local variables if they are _final_ or effectivly final
+```
+public void variables(int a) {
+   int b = 1;
+   Predicate<Integer> p1 = a -> {  // DOES NOT COMPILE - variable a is already declared as parameter above
+      int b = 0; 		  // DOES NOT COMPILE - variable b is redeclared as local variable and it's already declared above
+      int c = 0; 
+      return b == c;}		  // TRICKY!! - DOES NOT COMPILE - missing semicolon after } 
+}
+
+public class Bird {
+	   private String color;
+	   public void methodCompile(String name) {
+	      String volume = "loudly";
+	      Predicate<String> p = s -> (name+volume+color).length()==10;
+	   }
+	   
+	   public void methodDoseNotCompile(String name){
+		final String volume = "loudly";
+	      color = "allowed";
+	      name = "not allowed";
+	      Predicate<String> p =
+	         s -> (name+volume+color).length()==9; // DOES NOT COMPILE - name not effective final
+
+	   }
+	}
 ```
