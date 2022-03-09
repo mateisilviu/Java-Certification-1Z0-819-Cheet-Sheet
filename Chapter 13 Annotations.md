@@ -55,3 +55,35 @@ class NotValid2 { }
 @MyAnnotation(defaultInformation = 10)		// DOSE NOT COMPILE - missing declaration of required element 'someInformation'
 class NotValid3 { }
 ```
+
+  ### Annotation constants and access modifiers
+  - annotation elements are implicitly _abstract_ and _public_
+  - any of keywords used for annotation elements like _protected_, _private_, _final_
+  - annotation constant are implicitly _public,static_ and _final_
+  - annotation are not considered elements so they could exists in marker annotation
+  - annotation constant variable can be accessed by other classes without creating annotation	
+	
+```
+@interface Material {}
+
+public @interface Fluffy {
+   int cuteness();					// public abstract will be implied
+   public boolean washable() default true; 		// abstract will be implied 
+   abstract int temperature() default 30;		// public will be implied
+   public abstract int softness() default 11;	// 
+   
+   // constants declaration :
+   int MIN_VOLTAGE = 2;					// public,static,final
+   public boolean WATER_SUPPLIE = true;			// static, final
+   public static int SOFTNER  = 50;			// final
+   public static final int MAX_VOLTAGE = 18;		// all in place
+   static final int CAPACITY = 8;			// public
+   final String DISPLAY = "Hello";			// public, static
+   static String ENERGY_EFFICIENCY = "B";		// public, final 
+   
+   
+   protected Material material();  // DOES NOT COMPILE - protected is not compatible with public
+   private String friendly();      // DOES NOT COMPILE - private is not compatible with public
+   final boolean isBunny();        // DOES NOT COMPILE - final is not compatible with abstract
+}
+```
