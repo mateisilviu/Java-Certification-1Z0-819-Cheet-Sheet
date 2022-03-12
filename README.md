@@ -18,7 +18,7 @@ This cheet sheet / resume is based on this book that I really recommand you to b
 ## Part II - Exam 1Z0-816, OCP Java SE 11 Programmer II
   - [Chapter 12 Java Fundamentals](https://github.com/mateisilviu/Java-Certification-1Z0-819-Cheet-Sheet/blob/main/Chapter%2012%20Java%20Fundamentals.md)
   - [Chapter 13 Annotations](https://github.com/mateisilviu/Java-Certification-1Z0-819-Cheet-Sheet/blob/main/Chapter%2013%20Annotations.md)
-  - [Chapter 14] - todo
+  - [Chapter 14 Generics and Collections](https://github.com/mateisilviu/Java-Certification-1Z0-819-Cheet-Sheet/blob/main/Chapter%2014%20Generics%20and%20Collections.md)
   - [Chapter 15 Functional Programming](https://github.com/mateisilviu/Java-Certification-1Z0-819-Cheet-Sheet/blob/main/Chapter%2015%20Functional%20Programming.md)
   - [Chapter 16] - todo
   - [Chapter 17 Modules](https://github.com/mateisilviu/Java-Certification-1Z0-819-Cheet-Sheet/blob/main/Chapter%2017%20Modules.md)
