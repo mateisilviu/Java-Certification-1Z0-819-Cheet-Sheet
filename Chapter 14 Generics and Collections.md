@@ -76,16 +76,112 @@ public class Penguin {
     }
  ```
 ### Wrapper Classes
-  - __
+  - _autoboxing_ happens when compiler converts a primitive to the corresponding wrapper
+  - _unboxing_ happens when compiler converts a wrapper class back to a primitive 
+  - compiler will always prefer methods that match the primitive or the wrapper class and not execute autoboxing , unboxing 
+
+|Primitive type|Wrapper class|Example of initializing  |
+|----|----|----|
+|boolean |Boolean |Boolean.valueOf(true)  |
+|byte |Byte |Byte.valueOf((byte) 1)  |
+|short |Short |Short.valueOf((short) 1)  |
+|int |Integer |Integer.valueOf(1)  |
+|long |Long |Long.valueOf(1)  |
+|float |Float |Float.valueOf((float) 1.0)  |
+|double |Double |Double.valueOf(1.0)  |
+|char |Character |Character.valueOf('c') |
+
+```
+List<Integer> numbers = new ArrayList<Integer>();g
+numbers.add(1);						// autoboxing to Integer , 1 is added : [1] 
+numbers.add(Integer.valueOf(3));	// Integer , 3 is added : [1,3]
+numbers.add(Integer.valueOf(5));	// Integer , 5 is added : [1,3,5]
+// remove is overloaded remove(int index) ; remove(Object o)
+numbers.remove(1);					// no autoboxing executed as direct primitive prefered, so element with index 1 removed : [1,5]
+numbers.remove(Integer.valueOf(5)); // remove(Object o) applied , 5 is removed 
+System.out.println(numbers);		//outputs [1]
+```
 ### Diamond Operator
+- is used for shorhand notation of long declaration of generics
+- could exists only in the right side of = , before = will cause a compilation error
+```
+    	   Map<Long,List<Integer>> mapLists = new HashMap<Long,List<Integer>>();
+    	   Map<Long,List<Integer>> mapLists2 = new HashMap<>(); // usage of <> short code 
+    	    
+    	   List<> list = new ArrayList<Integer>();      // DOES NOT COMPILE - diamond <> cannot exist on left side
+    	   
+    	   // not equivalent 
+    	   var list1 = new ArrayList<Integer>(); // ArrayList<Integer>
+    	   var list2 = new ArrayList<>();		// ArrayList<Object>
+```
 ### Lists, Sets, Maps, and Queues
+- List : a ordered collection of elements that allow duplicate entries, elements are accesed by an _int_ index
+- Set : a collection that dose not allow duplicate entries
+- Queue : a collection of elements where order of processing is important (first-in,first-out, etc)
+- Map : a collection where keys are used to hold values and no duplicate keys are allowed
 #### Common Collections Methods
+- List , Queue , Set are under _Collection_ interface 
+- Map is a collection but not related via inheritence with _Collection_ interface 
 ##### add()
+- boolean add(E element) // method signature
+- adds an element to a collection and returns _true_ if succesfull or _false_ otherwise 
+- adding to a _Set_ might return _false_ if element already exists
+- trick question could contain method _put_ that exists for _Map_ causing compilation error 
+```
+Collection<String> list = new ArrayList<>();
+System.out.println(list.add("Element")); // true
+System.out.println(list.add("Element")); // true
+
+Collection<String> set = new HashSet<>();
+System.out.println(set.add("Element")); // true
+System.out.println(set.add("Element")); // false
+System.out.println(set.put("Alien")); // DOSE NOT COMPILE - 'put' not a method of Set
+```
 ##### remove()
+- boolean remove(Object object) // method signature
+- boolean remove(int index)	// method signature
+- removes a single value that will match the object in parameter
+- removing an element while looping cause a ConcurrentModificationException unless specific types of lists are used 
+- using an _int_ as parameter will remove respective element on the index and not match an object
+```
+Collection<String> birds = new ArrayList<>();
+birds.add("hawk");                            // [hawk]
+birds.add("hawk");                            // [hawk, hawk]
+System.out.println(birds.remove("cardinal")); // false
+System.out.println(birds.remove("hawk"));     // true - removes only 1st match 
+System.out.println(birds);                    // [hawk]
+birds.remove(100); 							 // IndexOutOfBoundsException
+
+for (String bird : birds) // ConcurrentModificationException
+   birds.remove(bird);
+```
 ##### isEmpty() and size()
+- boolean isEmpty() // method signature
+- int size() // method signature
+- isEmpty returns _true_ boolean when the collection is empty or _false_ otherwise 
+- size returns an integer represeting number of elements in collection
+- sometimes tricky question call .lenght() or .lenght ; this results in compilation error 
 ##### clear()
+- void clear() // method signature
+- a way to discard all elements of a collection
 ##### contains()
+- boolean contains(Object object) // method signature
+- checks if an element exists in collection , returns _true_ or _false_
+- method calls _equals()_ so a bad implementation could result in bad outcome 
 ##### removeIf()
+- boolean removeIf(Predicate<? super E> filter) // method signature
+- removes all elements that match predicate in parameter 
+```
+ 	Collection<String> list = new ArrayList<>();
+    list.add("Magician");
+    list.add("Assistant");
+    list.add("");
+    System.out.println(list);     // [Magician, Assistant,""]
+    list.removeIf(s -> s.startsWith("A"));	// literal "A" as parameter 
+    list.removeIf(String::startsWith); // DOSE NOT COMPILE - a literal is need as parameter
+    list.removeIf(String::isEmpty); // "" is removed from list 
+    System.out.println(list);     // [Magician]
+```
 ##### forEach()
 #### List Interface
 ##### Creating a List with a Factory
