@@ -268,8 +268,79 @@ for (String bird : birds) // ConcurrentModificationException
 |E remove() |Removes and returns next element or throws an exception if empty queue|Yes|
 |E poll() |Removes and returns next element or returns null if empty queue|No|
 |E peek() |Returns next element or returns null if empty queue|No|
+
+```
+Queue<Integer> queue = new LinkedList<>();
+System.out.println(queue.offer(10)); // true [10]
+System.out.println(queue.offer(4));  // true [10]-[4]
+System.out.println(queue.peek());    // 10   [10]-[4]
+System.out.println(queue.poll());    // 10   [4]
+System.out.println(queue.poll());    // 4    [null]
+System.out.println(queue.peek());    // null
+```
 #### Map Interface
+- _HashMap_ 
+  - is a map implementation where the keys are stored in a hash table
+  - _hashCode()_ method is called for the objectat that will be added into collection
+  - retriving an existing element by key is in constant time
+  - order of elements added is not preserved 
+- _LinkedHashMap_ 
+  - not in scope of the exam 
+- _TreeMap_
+  - is a map implementation where the keys are stored into a sorted tree structure 
+  - keys are always in sorted order
+  - adding and checking if a key is present takes longer proportional with data set size 
 ##### Map Methods
+|Method|Description|
+|---|---|
+|void clear() |Removes all keys and values from the map.|
+|boolean containsKey(Object key) |Returns whether key is in map.|
+|boolean containsValue(Object value) |Returns whether value is in map.|
+|Set< Map.Entry< K,V>> entrySet() |Returns a Set of key/value pairs.|
+|void forEach(BiConsumer(K key, V value)) |Loop through each key/value pair.|
+|V get(Object key) |Returns the value mapped by key or null if none is mapped.|
+|V getOrDefault(Object key, V defaultValue) |Returns the value mapped by the key or the default value if none is mapped.|
+|boolean isEmpty() |Returns whether the map is empty.|
+|Set< K> keySet() |Returns set of all keys.|
+|V merge(K key, V value, Function(< V, V, V> func)) |Sets value if key not set. Runs the function if the key is set to determine the new value. Removes if null.|
+|V put(K key, V value) |Adds or replaces key/value pair. Returns previous value or null.|
+|V putIfAbsent(K key, V value) |Adds value if key not present and returns null. Otherwise, returns existing value.|
+|V remove(Object key) |Removes and returns value mapped to key. Returns null if none.|
+|V replace(K key, V value) |Replaces the value for a given key if the key is set. Returns the original value or null if none.|
+|void replaceAll(BiFunction< K, V, V> func) |Replaces each value with the results of the function.|
+|int size() |Returns the number of entries (key/value pairs) in the map.|
+|Collection< V> values() |Returns Collection of all values.|
+
+```
+    	   Map<String, String> map = new HashMap<>();
+    	   map.put("koala", "bamboo");
+    	   map.put("lion", "meat");
+    	   map.put("giraffe", "leaf");
+    	   String food = map.get("koala"); // bamboo
+    	   for (String key: map.keySet())
+    	      System.out.print(key + ","); // koala,giraffe,lion,
+    	   
+    	   Map<String, String> tree = new TreeMap<>();
+    	   map.put("koala", "bamboo");
+    	   map.put("lion", "meat");
+    	   map.put("giraffe", "leaf");
+    	   food = tree.get("koala"); // bamboo
+    	   for (String key: tree.keySet())
+    	      System.out.print(key + ","); // giraffe,koala,lion,
+    	   
+    	   map.add("invalid","method"); // DOES NOT COMPILE - add() not available for Map
+    	   for (String key: map.keys()) // DOES NOT COMPILE - keys() not available for Map
+    		   System.out.print(key + ",");
+    	   for (String value: map.values()) // compiles 
+    		   System.out.print(value + ",");  //
+    	   //System.out.println(map.contains("lion")); // DOES NOT COMPILE
+    	   System.out.println(map.containsKey("lion")); // true
+    	   System.out.println(map.containsValue("lion")); // false
+    	   System.out.println(map.size()); // 3
+    	   map.clear();
+    	   System.out.println(map.size()); // 0
+    	   System.out.println(map.isEmpty()); // true
+```
 #### Comparing Collection Types
 ### Sorting Data
 #### Comparable Class
