@@ -183,13 +183,91 @@ for (String bird : birds) // ConcurrentModificationException
     System.out.println(list);     // [Magician]
 ```
 ##### forEach()
+- void forEach(Consumer<? super T> action) // method signature
+- used to loop a collection and takes a _Consumer_ and dose not return anything 
 #### List Interface
+- _ArrayList_ 
+  - is a resizable array, that automatically grows when new elements are added
+  - access is in constant time (best usage when reading is most offen than writing) 
+  - adding/removing element slower than reading 
+- _LinkedList_
+  - implements both _List_ and _Queue_
+  - advantage of usage when you need to add,remove from beginning and end of list in constant time (use it like a queue)
 ##### Creating a List with a Factory
+|Method|Description|Can add elements?|Can replace element?|Can delete elements?|
+|---|----|----|----|----|
+|Arrays.asList(varargs) |Returns fixed size list backed by an array|No	|Yes|No|
+|List.of(varargs)|Returns immutable list|No|No|No|
+|List.copyOf(collection)|Returns immutable list with copy of original collection's values|No|No|No|
+
 ##### List Methods
+|Method|Description|
+|---|---|
+|boolean add(E element) |Adds element to end (available on all Collection APIs)|
+|void add(int index, E element) |Adds element at index and moves the rest toward the end|
+|E get(int index) |Returns element at index|
+|E remove(int index) |Removes element at index and moves the rest toward the front|
+|void replaceAll(UnaryOperator<E> op) |Replaces each element in the list with the result of the operator|
+|E set(int index, E e) |Replaces element at index and returns original. Throws IndexOutOfBoundsException if the index is larger than the maximum one set|
+
+```
+  List<String> list = new ArrayList<>();
+  list.add("SD");                  // [SD]
+  list.add(0, "NY");               // [NY,SD]
+  list.set(1, "FL");               // [NY,FL]
+  System.out.println(list.get(0)); // NY
+  list.remove("NY");               // [FL]
+  list.remove(0);                  // []
+  list.set(0, "?");                // IndexOutOfBoundsException
+
+  List<Integer> numbers = Arrays.asList(1, 2, 3);
+  numbers.replaceAll(x -> x*2);
+  System.out.println(numbers);   // [2, 4, 6]
+```
 #### Set Interface 
+- _HashSet_ 
+  - elements are stored in a _hash table_ based on _hashCode()_ method called for the stored object
+  - adding a duplicate element into collection is checked in constant time
+  - order of elements added is lost 
+- _TreeSet_
+  - elements are stored into a sorted tree structure
+  - main benefit is that the collection is always sorted 
+  - adding and retriving elements takes longer compared to _HashSet_ most evident when dataset is very big
 ##### Set Methods
+```
+  Set<Character> duplicate = Set.of('a', 'a', 'b'); // IllegalArgumentException: duplicate element: a
+  Set<Character> letters = Set.of('z', 'o', 'b');
+  Set<Character> copy = Set.copyOf(letters);
+  
+  Set<StringBuilder> sbSet = Set.of(new StringBuilder("test1"), new StringBuilder("test2"));
+  sbSet.forEach(System.out::println);		// "test1 test2"
+  sbSet.forEach(x -> x.append(" modified")); 
+  sbSet.forEach(System.out::println); 	// "test1 modified test2 modified"
+  
+  letters.add('n'); 	 // UnsupportedOperationException 
+  copy.add('o'); 		 // UnsupportedOperationException 
+  letters.remove('t'); // UnsupportedOperationException
+  copy.remove('k'); 	 // UnsupportedOperationException 
+  
+  letters.add(null);  // NullPointerException
+  copy.add(null);     // NullPointerException
+```
 #### Queue Interface
+- _FIFO_ first-in,first-out
+- _LIFO_ last-in,last-out or also known as _stack_
+- _LinkedList _
+  - it's a double ended queue, elements can be inserted and removed from both front/back
+- _ArrayDeque_ 
+   - not in scope of exame
 ##### Queue Methods
+|Method|Description|Throws exception on failure|
+|---|---|---|
+|boolean add(E e) |Adds an element to the back of the queue and returns true or throws an exception|Yes|
+|E element() |Returns next element or throws an exception if empty queue|Yes|
+|boolean offer(E e) |Adds an element to the back of the queue and returns whether successful|No|
+|E remove() |Removes and returns next element or throws an exception if empty queue|Yes|
+|E poll() |Removes and returns next element or returns null if empty queue|No|
+|E peek() |Returns next element or returns null if empty queue|No|
 #### Map Interface
 ##### Map Methods
 #### Comparing Collection Types
