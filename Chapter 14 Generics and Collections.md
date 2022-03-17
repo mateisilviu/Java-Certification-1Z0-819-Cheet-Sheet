@@ -341,13 +341,222 @@ System.out.println(queue.peek());    // null
     	   System.out.println(map.size()); // 0
     	   System.out.println(map.isEmpty()); // true
 ```
+- _forEach()_ is used with a lambda with 2 parameters
+- _entrySet()_ is of type _java.util.Map.Entry< K, V>_ and can be used to interate pairs of key/value
+- _getOrDefault()_ is used to retrive data from collection but if not found, another parameter default value will be returned
+- _replace(),replaceAll()_ are used mandatory with pair key/value paramters or in lambda 
+- _putIfAbsent()_ will add a new key value to collection, if key already exists, will be replaced only if == _null_
+- _merge()_
+  - V merge​(K key, V value, BiFunction<? super V,​? super V,​? extends V> remappingFunction) // method signature
+  - used to combine elements based on rules of BiFunction
+|If the requested key ________|And mapping function returns ________|Then:  |
+|-----|-----|------|
+|Has a null value in map|N/A (mapping function not called)|Update key's value in map with value parameter. |
+|Has a non‐null value in map|null |Remove key from map. |
+|Has a non‐null value in map|A non‐null value|Set key to mapping function result. |
+|Is not in map|N/A (mapping function not called)|Add key with value parameter to map directly without calling mapping function.|
+```
+  	Map<Integer, Character> map = new HashMap<>();
+    map.put(1, 'a');
+    map.put(2, 'b');
+    map.put(3, 'c');
+    map.forEach((k, v) -> System.out.println(v));
+    map.values().forEach(System.out::println);
+    map.entrySet().forEach(e -> System.out.println(e.getKey() + e.getValue()));
+    
+    System.out.println("26th letter of alphabet is " + map.get(26)); //null
+    System.out.println("26th letter of alphabet is " + map.getOrDefault(26, 'z')); // 'z' 
+    
+    map.replace(2, 'd'); // [a,d,c]
+    map.replaceAll((k, v) -> 'z'); //[z,z,z]
+    map.putIfAbsent(4, null); //[z,z,z,null]
+    map.putIfAbsent(4, 'a'); //[z,z,z,a]
+    map.putIfAbsent(4, 'b'); //[z,z,z,a]
+    map.forEach((k, v) -> System.out.println(v));
+    
+    BiFunction<Character, Character, Character> mapper = (v1, v2)-> {return (char) (v2 + 1); };
+    map.put(5, null);
+    map.merge(5, 'b', mapper);//[z,z,z,a,b] because value on 5 was null
+    map.merge(5, 'c', mapper); // [z,z,z,a,d] because value of mapper returns 'c' + 1 => 'd'
+```
 #### Comparing Collection Types
+|Type|Can contain duplicate elements?|Elements always ordered?|Has keys and values?|Must add/remove in specific order?|
+|---|---|---|---|----|
+|List |Yes|Yes (by index)|No|No|
+|Map |Yes (for values)|No|Yes|No|
+|Queue |Yes|Yes (retrieved in defined order)|No|Yes|
+|Set |No|No|No|No|
+
+|Type|Java Collections Framework interface|Sorted?|Calls hashCode?|Calls compareTo?|
+|---|---|---|---|----|
+|ArrayList |List |No|No|No|
+|HashMap |Map |No|Yes|No|
+|HashSet |Set |No|Yes|No|
+|LinkedList |List, Queue|No|No|No|
+|TreeMap |Map |Yes|No|Yes|
+|TreeSet |Set |Yes|No|Yes|
 ### Sorting Data
-#### Comparable Class
+- _Collections.sort()_ returns _void_ and will sort the parameter used in method
+#### Comparable Interface
+- _Comparable_ is an interface and any class could implement it
+- contains method : int compareTo(T o);
+- if 0 is returned in the implementation of _compareTo()_ then it means objects are equal
+- if negative number is returned in the implementation of _compareTo()_ then current object is **smaller** than the argument
+- if positive number is returned in the implementation of _compareTo()_ then current object is **smaller** than the argument
+- for legacy code with no generics, a cast is needed for comp
+- it's recommanded to check for _null_ values when implement _compareTo()_
+- it's recommanded to keep _equals()_ consistent with _compareTo()_ meaning if x.equals(y) == true <=> x.compareTo(y) == 0
+```
+package com.silviu;
+
+public class Animal implements Comparable<Animal> {
+	private int id;
+	private String name;
+
+	public Animal(int id,String name) {
+		this.id = id;
+		this.name = name;
+	}
+
+    @Override
+	public String toString() {
+		return "Animal [id=" + id + ", name=" + name + "]";
+	}
+
+	public int compareTo(Animal a) {
+		if (a == null)
+			throw new IllegalArgumentException("Not a valid comparation!"); // recommanded null checkup
+		return id - a.id; // sorts ascending by id
+	}
+
+	public int hashCode() {
+		return id;
+	}
+
+	public boolean equals(Object obj) {
+		if (!(obj instanceof Animal))
+			return false;
+		var other = (Animal) obj;
+		return this.id == other.id;
+	}
+//    public int compareTo(Object obj) { // only in case of legacy code : public class Animal implements Comparable { ... }
+//    	Animal d = (Animal) obj;     // cast because no generics
+//      return id - a.id;
+//   }
+
+	public static void main(String[] args) {
+		var a1 = new Animal(5,"sheep");
+		var a2 = new Animal(7,"horse");
+		System.out.println(a1.compareTo(a2)); // -2
+		System.out.println(a1.compareTo(a1)); // 0
+		System.out.println(a2.compareTo(a1)); // 2
+	}
+}
+```
 #### Comparing Data with a Comparator
+- Comparator interface is imported from package _java.util.Comparator;_ 
+- this interface is used to sort objects in different ways at different times
+- a lambda implementation of it can be used as argument for _Collection.sort()_
+```
+// adding to class above in main() function : 
+	Comparator<Animal> byName = new Comparator<Animal>() {
+			@Override
+			public int compare(Animal o1, Animal o2) {
+				return o1.name.compareTo(o2.name);
+			}
+		}; // don't forget about ';'
+		
+		var animals = new ArrayList<Animal>(Arrays.asList(a1,a2)) ;
+		Collections.sort(animals);   // normal way using Comparable and compareTo
+		System.out.println(animals); // [Animal [id=5, name=sheep], Animal [id=7, name=horse]]
+		Collections.sort(animals, byName); // using Comparator, compare by name 
+		System.out.println(animals); // [Animal [id=7, name=horse], Animal [id=5, name=sheep]]
+```
 #### Difference between Comparable and Comparator
+|Difference|Comparable |Comparator   |
+|----|-----|-----|
+|Package name|java.lang |java.util  |
+|Interface must be implemented by class comparing?|Yes|No |
+|Method name in interface|compareTo() |compare()  |
+|Number of parameters|1|2 |
+|Common to declare using a lambda|No|Yes|
+```
+// trick question : 
+Comparator<Animal> byName = new Comparator<Animal>() {
+			@Override
+			public int compareTo(Animal o1, Animal o2) { // DOSE NOT COMPILE - a Comparator must implement compare() not compareTo()
+				return o1.name.compareTo(o2.name);
+			}
+		}; // don't forget about ';'
+```
 #### Comparing Multiple Fields
+- helper static methods for Comparator
+|Method|Description|
+|---|---|
+|comparing(function) |Compare by the results of a function that returns any Object (or object autoboxed into an Object).|
+|comparingDouble(function) |Compare by the results of a function that returns a double.|
+|comparingInt(function) |Compare by the results of a function that returns an int.|
+|comparingLong(function) |Compare by the results of a function that returns a long.|
+|naturalOrder() |Sort using the order specified by the Comparable implementation on the object itself.|
+|reverseOrder() |Sort using the reverse of the order specified by the Comparable implementation on the object itself.|
+- helper default methods for Comparator
+|Method|Description|
+|---|---|
+|reversed() |Reverse the order of the chained Comparator.|
+|thenComparing(function) |If the previous Comparator returns 0, use this comparator that returns an Object or can be autoboxed into one.|
+|thenComparingDouble(function) |If the previous Comparator returns 0, use this comparator that returns a double. Otherwise, return the value from the previous Comparator.|
+|thenComparingInt(function) |If the previous Comparator returns 0, use this comparator that returns an int. Otherwise, return the value from the previous Comparator.|
+|thenComparingLong(function) |If the previous Comparator returns 0, use this comparator that returns a long. Otherwise, return the value from the previous Comparator.|
+
+```
+public class Squirrel {
+   private int weight;
+   private String species;
+   // Assume getters/setters/constructors provided
+   
+   //
+	Comparator<Squirrel> c = Comparator.comparing(Squirrel::getSpecies)
+		.thenComparingInt(Squirrel::getWeight);
+    var d = Comparator.comparing(Squirrel::getSpecies).reversed();
+}
+```
 #### Sorting and Searching
+- _Collections.sort()_ uses _compareTo()_ method to sort the collection and will not compile if objects in collection don't implement this method
+- adding a _Comparator_ to _sort()_ parameter solve issue above
+```
+public class SortRabbits {
+	static class Rabbit {
+		int id;
+	}
+
+	public static void main(String[] args) {
+		List<Rabbit> rabbits = new ArrayList<>();
+		rabbits.add(new Rabbit());
+		Collections.sort(rabbits); // DOES NOT COMPILE
+
+		Comparator<Rabbit> c = (r1, r2) -> r1.id - r2.id;
+		Collections.sort(rabbits, c); // compiles
+
+		Set<Rabbit> rabbitsTree1 = new TreeSet<>((r1, r2) -> r1.id-r2.id);
+		rabbitsTree1.add(new Rabbit()); // compiles run without issue
+
+		Set<Rabbit> rabbitsTree2 = new TreeSet<>();
+		rabbitsTree2.add(new Rabbit());  // ClassCastException - Rabbit class dose not implement Comparable
+	}
+}
+```
+- binarySearch() can be used with comparator parameter to sort collection befor the search
+```
+	List<Integer> list = Arrays.asList(6,9,1,8);
+		Collections.sort(list); // [1, 6, 8, 9]
+		System.out.println(Collections.binarySearch(list, 6)); // 1
+		System.out.println(Collections.binarySearch(list, 3)); // -2
+
+		var names = Arrays.asList("Fluffy", "Hoppy");
+		Comparator<String> c = Comparator.reverseOrder(); // sorted will be in reverse natural order
+		var index = Collections.binarySearch(names, "Hoppy", c);
+		System.out.println(index); //-1 undefined because not sorted well 
+```
 ### Working with Generics
 #### Generic Classes
 #### Generic Interfaces
