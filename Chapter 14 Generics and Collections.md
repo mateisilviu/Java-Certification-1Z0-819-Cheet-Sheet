@@ -242,14 +242,14 @@ for (String bird : birds) // ConcurrentModificationException
 
 ##### List Methods
 
-| Method                               | Description                                                                                                                      |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| boolean add(E element)               | Adds element to end (available on all Collection APIs)                                                                           |
-| void add(int index, E element)       | Adds element at index and moves the rest toward the end                                                                          |
-| E get(int index)                     | Returns element at index                                                                                                         |
-| E remove(int index)                  | Removes element at index and moves the rest toward the front                                                                     |
+| Method                                | Description                                                                                                                      |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| boolean add(E element)                | Adds element to end (available on all Collection APIs)                                                                           |
+| void add(int index, E element)        | Adds element at index and moves the rest toward the end                                                                          |
+| E get(int index)                      | Returns element at index                                                                                                         |
+| E remove(int index)                   | Removes element at index and moves the rest toward the front                                                                     |
 | void replaceAll(UnaryOperator< E> op) | Replaces each element in the list with the result of the operator                                                                |
-| E set(int index, E e)                | Replaces element at index and returns original. Throws IndexOutOfBoundsException if the index is larger than the maximum one set |
+| E set(int index, E e)                 | Replaces element at index and returns original. Throws IndexOutOfBoundsException if the index is larger than the maximum one set |
 
 ```Java
   List<String> list = new ArrayList<>();
@@ -784,20 +784,228 @@ class ShippableAbstractCrateConfusing2<T,U> implements Shippable<U> {
 
 - beside class and interface, a generic can be declared at the method level as well
 
-- the generic type is declared befor the return type 
+- the generic type is declared befor the return type
 
-- same letter can be used as method generic and class generic and could be confusing 
+- same letter can be used as method generic and class generic and could be confusing
+
+```Java
+package com.silviu;
+
+class Crate<T> { // T here represents any class or from main below it's <Robot>
+ public <T> T tricky(T t) { // T here represents a String, from main below it's "bot"
+  return t;
+ }
+ 
+ public T returnCreate(T t) {
+  return t;
+ }
+}
+
+class Robot {}
+
+public class Handler {
+ public static <T> void prepare(T t) {
+  System.out.println("Preparing " + t);
+ }
+
+ public static <T> Crate<T> ship(T t) { // same T type on all 
+  System.out.println("Shipping " + t);
+  return new Crate<T>();
+ }
+
+ public static <T> void sink(T t) { }
+
+ public static <T> T identity(T t) {
+  return t;
+ }
+
+ public static T noGood(T t) { // DOES NOT COMPILE - Handler class has no generic
+  return t;
+ } 
+ 
+ public static void main(String[] args) {
+  Crate<Robot> crate = new Crate<>();
+  String stringReturned = crate.tricky("bot");
+  Robot robotReturned = crate.returnCreate(new Robot());
+  
+  Handler.<String>ship("package"); // a way to specify the method type <T>
+  Handler.<String[]>ship(args);    // a way to specify the method type <T>
+  String packagesString1 = Handler.ship("packages");  // DOES NOT COMPILE 
+  Crate<String> packagesString2 = Handler.ship("packages");//compiles - expected value
+  Handler.<String>ship(new Robot()); // DOES NOT COMPILE, cannot have 2 types, same T applies there
+  Handler.<Robot>ship(new Robot()); // compiles
+ }
+
+}
+```
 
 #### Bounding Generic Types
 
+- '?' chatacter can be used as wildcard generic
+
+- '?' accepts also an upper and lower bound using *extends* or *super* alongside
+
+| Type of bound                | Syntax         | Example                                                           |
+| ---------------------------- | -------------- | ----------------------------------------------------------------- |
+| Unbounded wildcard           | ?              | List<?> a = new ArrayList< String>();                             |
+| Wildcard with an upper bound | ? extends type | List<? extends Exception> a = new ArrayList< RuntimeException>(); |
+| Wildcard with a lower bound  | ? super type   | List<? super Exception> a = new ArrayList< Object>();             |
+
 ##### Unbounded Wildcards
+
+- can represent any data type
+
+(![Generics unbound](https://github.com/mateisilviu/Java-Certification-1Z0-819-Cheet-Sheet/blob/main/images/Generics%20unbound.gif)
 
 ##### Upper‐Bounded Wildcards
 
+- upper bounds use *extends* regarding of extended type class or interface
+
+```Java
+package com.silviu;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Generics {
+
+ static class Sparrow extends Bird { }
+ static class Bird { }
+ 
+ interface Flyer { void fly(); }
+ class HangGlider implements Flyer { public void fly() {} }
+ class Goose implements Flyer { public void fly() {} }
+ 
+ private void anyFlyer(List<Flyer> flyer) {}
+ private void groupOfFlyers(List<? extends Flyer> flyer) {}
+
+ public static void printList(List<Number> list) {
+  for (Number x : list)
+   System.out.println(x);
+ }
+
+ public static void printList2(List<? extends Number> list) {
+  for (Number x : list)
+   System.out.println(x);
+ }
+
+ public static void main(String[] args) {
+
+  ArrayList<Number> list = new ArrayList<Integer>(); // DOES NOT COMPILE
+
+  List<Integer> integers = new ArrayList<>();
+  integers.add(1);
+
+  List<Long> longNumbers = new ArrayList<>();
+  longNumbers.add(1L);
+
+  printList2(longNumbers);
+  printList2(integers);
+
+  List<? extends Bird> birds = new ArrayList<Bird>();
+  birds.add(new Sparrow()); // DOES NOT COMPILE - not clear what List type is as can be Bird => will not
+  birds.add(new Bird()); // DOES NOT COMPILE - not clear what List type is as can be Sparrow => will not
+
+  new Generics().anyFlyer(new ArrayList<Flyer>()); // compiles
+  new Generics().anyFlyer(new ArrayList<HangGlider>()); // DOSE NOT COMPILE - only Flyer acceptable
+  new Generics().anyFlyer(new ArrayList<Goose>()); // DOSE NOT COMPILE - only Flyer acceptable
+  
+  List<Flyer> flyers = new ArrayList<>();
+  flyers.add(new HangGlider());
+  flyers.add(new Goose());
+  new Generics().anyFlyer(flyers); // compiles 
+  new Generics().groupOfFlyers(flyers); // compiles
+  
+  new Generics().groupOfFlyers(new ArrayList<Flyer>()); // compiles
+  new Generics().groupOfFlyers(new ArrayList<HangGlider>()); // compiles
+  new Generics().groupOfFlyers(new ArrayList<Goose>()); // compiles
+  
+ }
+
+}
+```
+
 ##### Lower‐Bounded Wildcards
 
-#### Resumat
+- asuming we want a method to accept both *String* and *Object* asa parameter
 
-##### Combining Generic Declarations
+- we can't use upper bounded wildcards, lower bounded wildcards is the solution
 
-##### Passing Generic Arguments
+- when adding an object to a lower bounded generic, that type must be compatible with all possible types
+
+| public static void addSound(______list) {list.add("quack");} | Method compiles                           | Can pass a List< String>                   | Can pass a List< Object> |
+| ------------------------------------------------------------ | ----------------------------------------- | ----------------------------------------- | ----------------------- |
+| List<?>                                                      | No (unbounded generics are immutable)     | Yes                                       | Yes                     |
+| List<? extends Object>                                       | No (upper‐bounded generics are immutable) | Yes                                       | Yes                     |
+| List< Object>                                                | Yes                                       | No (with generics, must pass exact match) | Yesh                    |
+| List<? super String>                                         | Yes                                       | Yes                                       | Yes                     |
+
+```Java
+  List<? super IOException> exceptions = new ArrayList<Exception>();
+  // above equivalent of List<IOException> ; List<Exception> ; List<Object>
+  exceptions.add(new Exception()); // DOES NOT COMPILE - as is incompatible with List<IOException>
+  exceptions.add(new IOException()); // compiles, compatible with all possible types
+  exceptions.add(new FileNotFoundException()); // compiles, compatible with all possible types
+```
+
+#### Combining Generic Declarations
+
+```Java
+ class A {}
+ class B extends A {}
+ class C extends B {}
+
+ public static void main(String[] args) {
+ 
+  List<?> list1 = new ArrayList<A>(); // compiles
+  List<? extends A> list2 = new ArrayList<A>(); // compiles, acceptable objects of ArrayList<A>, ArrayList<B>, or ArrayList<C> 
+  List<? super A> list3 = new ArrayList<A>(); //compiles, ArrayList<A> , ArrayList<Object>, only acceptable type for both is A
+  
+  List<? extends B> list4 = new ArrayList<A>(); // DOES NOT COMPILE - acceptable objects of ArrayList<B> or ArrayList<C> only
+  List<? super B> list5 = new ArrayList<A>(); // compiles , acceptable objects of  ArrayList<A>, ArrayList<B> or ArrayList<Object>
+  
+  // you can't have wildcard '?' on right side and initialization : 
+  List<?> list6 = new ArrayList<? extends A>(); // DOES NOT COMPILE
+  List<? extends A> list6a = new ArrayList<? extends A>(); // DOES NOT COMPILE
+  List<A> list6b = new ArrayList<? extends A>(); // DOES NOT COMPILE
+  List<A> list6c = new ArrayList<? super A>(); // DOES NOT COMPILE
+  List<? super A> list6d = new ArrayList<? super A>(); // DOES NOT COMPILE
+  List<? super A> list6e = new ArrayList<?>(); // DOES NOT COMPILE
+  List<? extends A> list6f = new ArrayList<?>(); // DOES NOT COMPILE
+  List<?> list6g = new ArrayList<?>(); // DOES NOT COMPILE
+ }
+```
+
+#### Passing Generic Arguments
+
+- generic method declaration can cause tricky question when same name for generic is used as per existing class
+
+```Java
+ class A {}
+ class B extends A {}
+ class C extends B {}
+ 
+ <T> T first(List<? extends T> list) { // compiles
+     return list.get(0);
+  }
+ <T> <? extends T> second(List<? extends T> list) { // DOES NOT COMPILE - return type is not acceptable and not stable 
+     return list.get(0);
+  }
+ <T> <? super T> secondVersion2(List<? extends T> list) { // DOES NOT COMPILE - return type is not acceptable and not stable 
+     return list.get(0);
+  }
+ <B extends A> B third(List<B> list) { // all B refer to a generic type and not class B above 
+     return new B(); // DOES NOT COMPILE - you can't initialize generic types
+  }
+
+ <T extends A> T thirdVersion2(List<T> list) { // rewrite with T instead of B
+     return new T(); // DOES NOT COMPILE - you can't initialize generic types 
+  }
+ <T extends A> B thirdVersion3(List<T> list) { // rewrite with T generic and B class
+     return new B(); // compiles
+  }
+   void fourth(List<? super B> list) {} //compiles
+ 
+<X> void fifth(List<X super B> list) {  } // DOES NOT COMPILE - missing wildcard '?' 
+<X> void fifthCorrect(List<? super B> list) {  }  // compiles
+```
