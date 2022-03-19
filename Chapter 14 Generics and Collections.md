@@ -280,6 +280,20 @@ for (String bird : birds) // ConcurrentModificationException
 ##### Set Methods
 
 ```Java
+  Set<Character> nullPossible = new HashSet<>();
+  nullPossible.add('K');
+  nullPossible.add('0');
+  nullPossible.add('a');
+  nullPossible.add(null);
+  System.out.println(nullPossible); // [0, null, a, K]
+
+  Set<Character> nullTree = new TreeSet<>();
+  nullTree.add('K');
+  nullTree.add('0');
+  nullTree.add('a');
+  nullTree.add(null); // NullPointerException at runtime
+  System.out.println(nullTree); 
+
   Set<Character> duplicate = Set.of('a', 'a', 'b'); // IllegalArgumentException: duplicate element: a
   Set<Character> letters = Set.of('z', 'o', 'b');
   Set<Character> copy = Set.copyOf(letters);
@@ -305,17 +319,17 @@ for (String bird : birds) // ConcurrentModificationException
 - _LinkedList_
   - it's a double ended queue, elements can be inserted and removed from both front/back
 - _ArrayDeque_
-  - not in scope of exame
+  - not in scope of exam
 
 ##### Queue Methods
 
 | Method             | Description                                                                      | Throws exception on failure |
 | ------------------ | -------------------------------------------------------------------------------- | --------------------------- |
 | boolean add(E e)   | Adds an element to the back of the queue and returns true or throws an exception | Yes                         |
-| E element()        | Returns next element or throws an exception if empty queue                       | Yes                         |
 | boolean offer(E e) | Adds an element to the back of the queue and returns whether successful          | No                          |
 | E remove()         | Removes and returns next element or throws an exception if empty queue           | Yes                         |
 | E poll()           | Removes and returns next element or returns null if empty queue                  | No                          |
+| E element()        | Returns next element or throws an exception if empty queue                       | Yes                         |
 | E peek()           | Returns next element or returns null if empty queue                              | No                          |
 
 ```Java
@@ -326,6 +340,14 @@ System.out.println(queue.peek());    // 10   [10]-[4]
 System.out.println(queue.poll());    // 10   [4]
 System.out.println(queue.poll());    // 4    [null]
 System.out.println(queue.peek());    // null
+
+Queue<Integer> queue2 = new LinkedList<>();
+System.out.println(queue2.add(10)); // true [10]
+System.out.println(queue2.add(4));  // true [10]-[4]
+System.out.println(queue2.element());    // 10   [10]-[4]
+System.out.println(queue2.remove());    // 10   [4]
+System.out.println(queue2.remove());    // 4    [null]
+System.out.println(queue2.peek());    // null
 ```
 
 #### Map Interface
@@ -386,7 +408,7 @@ System.out.println(queue.peek());    // null
          System.out.print(key + ",");
         for (String value: map.values()) // compiles 
          System.out.print(value + ",");  //
-        //System.out.println(map.contains("lion")); // DOES NOT COMPILE
+        System.out.println(map.contains("lion")); // DOES NOT COMPILE - contains() not a method of Map
         System.out.println(map.containsKey("lion")); // true
         System.out.println(map.containsValue("lion")); // false
         System.out.println(map.size()); // 3
@@ -403,6 +425,7 @@ System.out.println(queue.peek());    // null
 - _merge()_
   - V merge​(K key, V value, BiFunction<? super V,​? super V,​? extends V> remappingFunction) // method signature
   - used to combine elements based on rules of BiFunction
+  
 | If the requested key ________ | And mapping function returns ________ | Then:                                                                          |
 | ----------------------------- | ------------------------------------- | ------------------------------------------------------------------------------ |
 | Has a null value in map       | N/A (mapping function not called)     | Update key's value in map with value parameter.                                |
@@ -463,8 +486,8 @@ System.out.println(queue.peek());    // null
 - contains method : int compareTo(T o);
 - if 0 is returned in the implementation of _compareTo()_ then it means objects are equal
 - if negative number is returned in the implementation of _compareTo()_ then current object is **smaller** than the argument
-- if positive number is returned in the implementation of _compareTo()_ then current object is **smaller** than the argument
-- for legacy code with no generics, a cast is needed for comp
+- if positive number is returned in the implementation of _compareTo()_ then current object is **bigger** than the argument
+- for legacy code with no generics, a cast is needed for _compareTo()_
 - it's recommanded to check for _null_ values when implement _compareTo()_
 - it's recommanded to keep _equals()_ consistent with _compareTo()_ meaning if x.equals(y) == true <=> x.compareTo(y) == 0
 
@@ -489,6 +512,7 @@ public class Animal implements Comparable<Animal> {
   if (a == null)
    throw new IllegalArgumentException("Not a valid comparation!"); // recommanded null checkup
   return id - a.id; // sorts ascending by id
+  // imagine id = 5 and a.id = 10 => result is -5 smaller so current object (this.id) < a.id => asceding by id
  }
 
  public int hashCode() {
@@ -702,7 +726,7 @@ class CrateTypeErasure { // equivalent class of Crate after compiling
 
 - similar to classes, generics can be applied on interfaces
 
-- classes that imenplent the interface must specify the generic type used or might pass generics of it into interface
+- classes that implement the interface must specify the generic type used or might pass generics of it into interface
 
 ```Java
 package com.silviu;
@@ -731,7 +755,7 @@ class ShippableAbstractCrateConfusing<T> implements Shippable<T> {
 // an example with 2 generics and U is passed on to Shippable
 class ShippableAbstractCrateConfusing2<T,U> implements Shippable<U> {
  public void ship(U t) {
-  new U(); // DOSE NOT COMPILE - you can't instanceate a generic
+  new U(); // DOSE NOT COMPILE - you can't instantiate a generic
  }
 }
 ```
@@ -744,47 +768,11 @@ class ShippableAbstractCrateConfusing2<T,U> implements Shippable<U> {
 
 - you are not allowed to create an array of the generic type
 
-```Java
-package com.silviu;
-
-import java.util.ArrayList;
-
-public interface Shippable<T> {
- void ship(T t);
-}
-
-class Robot {
-}
-
-class ShippableRobotCrate implements Shippable<Robot> {
- public void ship(Robot t) {
- }
-}
-// re-use generics into a class
-class ShippableAbstractCrate<U> implements Shippable<U> {
- public void ship(U t) {
- }
-}
-// T generic here is not the same as T from Shippable - tricky exam questions
-class ShippableAbstractCrateConfusing<T> implements Shippable<T> {
- public void ship(T t) {
- }
-}
-
-// an example with 2 generics and U is passed on to Shippable
-class ShippableAbstractCrateConfusing2<T,U> implements Shippable<U> {
- static T variable; // DOSE NOT COMPILE - can't have static variables of generic 
- public void ship(U t) {
-  new U(); // DOSE NOT COMPILE - can't create instance of generic 
- }
-}
-```
-
 #### Generic Methods
 
 - beside class and interface, a generic can be declared at the method level as well
 
-- the generic type is declared befor the return type
+- the generic type is declared before the return type
 
 - same letter can be used as method generic and class generic and could be confusing
 
@@ -792,7 +780,7 @@ class ShippableAbstractCrateConfusing2<T,U> implements Shippable<U> {
 package com.silviu;
 
 class Crate<T> { // T here represents any class or from main below it's <Robot>
- public <T> T tricky(T t) { // T here represents a String, from main below it's "bot"
+ public <T> T tricky(T t) { // T here any Class and different than T above, from main below is String because "bot" was used
   return t;
  }
  
@@ -854,6 +842,7 @@ public class Handler {
 ##### Unbounded Wildcards
 
 - can represent any data type
+- x1 and x2 are different type objects :
 
 (![Generics unbound](https://github.com/mateisilviu/Java-Certification-1Z0-819-Cheet-Sheet/blob/main/images/Generics%20unbound.gif)
 
