@@ -216,7 +216,65 @@ System.out.println(ZonedDateTime.now()); //2022-03-21T12:03:17.741957400+02:00[E
 
 ### of() Methods
 
+- all constructors of LocalDate, LocalTime etc classes are private so *new LocalDate()* will not compile
+- *of()* methods are using Factory Patter to return instance of the respective class
+- 1st paramter is the year, next the month, next the day (*LocalDate,LocalDateTime,ZonedDateTime*)
+- 1st paramter is the hour, the minute, seconds (optional), nanoseconds (optional) (*LocalTime*)
+- a combination of above with date first then informations about time (*LocalDateTime,ZonedDateTime*)
+
+```Java
+  LocalDate date1 = LocalDate.of(2022, Month.MARCH, 20);
+  LocalDate date2 = LocalDate.of(2022, 03, 20);
+  LocalDate date3 = LocalTime.of(0, 0); // DOSE NOT COMPILE - cannot convert LocalTime to LocalDate
+  LocalDate date4 = LocalDateTime.of(2022, Month.APRIL, 10, 0, 0); // DOSE NOT COMPILE - cannot convert LocalDateTime to LocalDate
+  LocalDate date5 = LocalDate.of(0, 0, 0); // java.time.DateTimeException - Invalid value for MonthOfYear (valid values 1 - 12): 0
+  LocalDate date6 = LocalDate.of(0, 1, 0);// java.time.DateTimeException: Invalid value for DayOfMonth (valid values 1 - 28/31): 0
+  LocalDate date7 = LocalDate.of(2022, 2, 29);// java.time.DateTimeException: Invalid date 'February 29' as '2022' is not a leap year
+  
+  LocalTime time1 = LocalTime.of(6, 15); // hour minute
+  LocalTime time2 = LocalTime.of(6, 15, 10); // hour minute second
+  LocalTime time3 = LocalTime.of(6, 15, 10, 500 ); // hour minute second nanosecond
+  LocalTime time4 = LocalTime.of(25, 15, 10, 500 ); // java.time.DateTimeException: Invalid value for HourOfDay (valid values 0 - 23): 25
+  
+  LocalDateTime localdatetime1 = LocalDateTime.of(2022,3,20,6,15); // minumum number of params (date + hour minute)
+  LocalDateTime localdatetime2 = LocalDateTime.of(2022,3,20); // less than minumum is compilation error
+  LocalDateTime localdatetime3 = LocalDateTime.of(2022,3,20,6,15,10,500); // maximum params including second , nanosecond
+  LocalDateTime localdatetime4 = LocalDateTime.of(date1, time1); // can be composed of LocalDate Object + LocalTime Object
+  
+  ZonedDateTime localzoneddatetime1 = ZonedDateTime.of(localdatetime4, ZoneId.systemDefault());
+  ZonedDateTime localzoneddatetime2 = ZonedDateTime.of(2022,3,20,6,15,10,500,ZoneId.of("Europe/Bucharest"));
+  ZonedDateTime localzoneddatetime3 = localdatetime4.atOffset(ZoneOffset.of("-05:00")).toZonedDateTime(); // conversion to -5 GMT 
+
+```
+
 ### Formatting Dates and Times
+
+- Java provides *DateTimeFormatter* class as support to format a date / datetime to a specific format
+- *DateTimeFormatter* will throw an exception if incompatible format is used
+- has method *ofPattern()* where a *String* can be used with specific keywords/symbol respreseting date/time parts
+- *DateTimeFormatter* is in package *java.time.format*, prior to Java 8, there was used *java.text.SimpleDateFormat* and there might be question with old format
+
+```Java
+  LocalDate date = LocalDate.of(2022, Month.MARCH, 20);
+  LocalTime time = LocalTime.of(11, 12, 34);
+  LocalDateTime dt = LocalDateTime.of(date, time);
+  
+  System.out.println(date.getDayOfWeek());  // SUNDAY
+  System.out.println(date.getMonth());      // MARCH
+  System.out.println(date.getYear());       // 2022
+  System.out.println(date.getDayOfYear());  // 79
+  
+  System.out.println(date.format(DateTimeFormatter.ISO_LOCAL_DATE)); // 2022-03-20
+  System.out.println(time.format(DateTimeFormatter.ISO_LOCAL_TIME)); // 11:12:34
+  System.out.println(dt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)); // 2022-03-20T11:12:34
+  
+  var f = DateTimeFormatter.ofPattern("MMMM dd, yyyy 'at' hh:mm");
+  System.out.println(dt.format(f));  // March 20, 2022 at 11:12
+  
+  DateFormat s = new SimpleDateFormat("MMMM dd, yyyy 'at' hh:mm"); // before Java 8 but still available in Java 11
+  
+  System.out.println(s.format(new Date()));  // October 20, 2020 at 06:15
+```
 
 #### Standard Date/Time Symbols
 
